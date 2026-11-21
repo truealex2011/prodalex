@@ -14,6 +14,7 @@
   <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Benzin-Semibold.ttf') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/demo.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/inspector.css') }}">
   <script type="importmap">
   {"imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -275,6 +276,7 @@
 </aside>
 
 <div id="toast" class="toast" hidden role="status"></div>
+<script src="{{ url_for('static', filename='js/inspector.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

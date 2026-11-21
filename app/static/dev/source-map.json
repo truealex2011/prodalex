@@ -1,0 +1,3139 @@
+{
+  "generated": "2026-11-22 01:41:17",
+  "source": "tools/build_source_map.py",
+  "entries": {
+    "#app": {
+      "label": "Корневой контейнер приложения",
+      "backend": [
+        {
+          "file": "app/__init__.py",
+          "dir": "app/",
+          "name": "__init__.py",
+          "start": 37,
+          "end": 118,
+          "note": "FunctionDef create_app"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 26,
+          "end": 26,
+          "note": "<main id=\"app\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 56,
+          "end": 66,
+          "note": "function show(id, { push = true } = {}) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 906,
+          "end": 939,
+          "note": "async function route(path) {"
+        }
+      ]
+    },
+    ".masthead": {
+      "label": "Шапка сайта",
+      "backend": [
+        {
+          "file": "app/__init__.py",
+          "dir": "app/",
+          "name": "__init__.py",
+          "start": 37,
+          "end": 118,
+          "note": "FunctionDef create_app"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 27,
+          "end": 27,
+          "note": "<header class=\"masthead\">"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 26,
+          "end": 26,
+          "note": "<main id=\"app\">"
+        }
+      ]
+    },
+    ".brand": {
+      "label": "Логотип AutoChoice",
+      "backend": [
+        {
+          "file": "app/__init__.py",
+          "dir": "app/",
+          "name": "__init__.py",
+          "start": 37,
+          "end": 118,
+          "note": "FunctionDef create_app"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 28,
+          "end": 28,
+          "note": "<a class=\"brand\" href=\"/\" aria-label=\"AutoChoice — на главную\">"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 203,
+          "end": 203,
+          "note": "<a class=\"brand\" href=\"/\" aria-label=\"AutoChoice — на главную\">"
+        }
+      ]
+    },
+    "#acc-btn": {
+      "label": "Кнопка аккаунта в шапке",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 119,
+          "end": 121,
+          "note": "GET /me"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 25,
+          "end": 27,
+          "note": "FunctionDef current_user"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 32,
+          "end": 32,
+          "note": "<button class=\"acc-btn\" id=\"acc-btn\" type=\"button\" aria-label=\"Аккаунт\"><span class=\"avatar\" id=\"acc-avatar\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\""
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 760,
+          "end": 770,
+          "note": "async function refreshUser() {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 773,
+          "end": 779,
+          "note": "function openAuth(kind=\"login\",note=\"\"){"
+        }
+      ]
+    },
+    "#screen-mode": {
+      "label": "Главный экран (описание + вход)",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 89,
+          "end": 105,
+          "note": "POST /sessions"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 35,
+          "end": 35,
+          "note": "<section class=\"screen active\" id=\"screen-mode\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 56,
+          "end": 66,
+          "note": "function show(id, { push = true } = {}) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 906,
+          "end": 939,
+          "note": "async function route(path) {"
+        }
+      ]
+    },
+    ".hero": {
+      "label": "Заголовок «Подберём машину для ВАС»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 89,
+          "end": 105,
+          "note": "POST /sessions"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 36,
+          "end": 36,
+          "note": "<div class=\"hero\"><p class=\"eyebrow\">Подбор автомобиля</p><h1>Подберём машину для <span class=\"h1-accent\">ВАС</span></h1></div>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 35,
+          "end": 35,
+          "note": "<section class=\"screen active\" id=\"screen-mode\">"
+        }
+      ]
+    },
+    "#home-levels": {
+      "label": "Выбор режима «Новичок / Эксперт»",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 47,
+          "end": 50,
+          "note": "FunctionDef _check_mode"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 89,
+          "end": 105,
+          "note": "POST /sessions"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 41,
+          "end": 41,
+          "note": "<div class=\"home-levels\" id=\"home-levels\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 95,
+          "end": 95,
+          "note": "function selectedHomeMode(){return $('#home-levels .level-btn.active')?.dataset.mode || 'novice';}"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 51,
+          "end": 51,
+          "note": "<button class=\"primary\" id=\"start-btn\" type=\"button\">Дальше →</button>"
+        }
+      ]
+    },
+    ".level-btn": {
+      "label": "Кнопка уровня «Новичок / Эксперт»",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 47,
+          "end": 50,
+          "note": "FunctionDef _check_mode"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 42,
+          "end": 42,
+          "note": "<button class=\"level-btn active\" data-mode=\"novice\" type=\"button\"><b>Новичок</b><span>Простыми словами</span></button>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 43,
+          "end": 43,
+          "note": "<button class=\"level-btn\" data-mode=\"expert\" type=\"button\"><b>Эксперт</b><span>Точные условия</span></button>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 41,
+          "end": 41,
+          "note": "<div class=\"home-levels\" id=\"home-levels\">"
+        }
+      ]
+    },
+    "#home-describe": {
+      "label": "Поле описания желаемой машины",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 172,
+          "end": 188,
+          "note": "POST /sessions/<sid>/describe"
+        },
+        {
+          "file": "app/nlu.py",
+          "dir": "app/",
+          "name": "nlu.py",
+          "start": 72,
+          "end": 128,
+          "note": "FunctionDef parse"
+        },
+        {
+          "file": "app/llm.py",
+          "dir": "app/",
+          "name": "llm.py",
+          "start": 222,
+          "end": 237,
+          "note": "FunctionDef understand"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 45,
+          "end": 45,
+          "note": "<textarea id=\"home-describe\" rows=\"6\" maxlength=\"1000\" placeholder=\"Например: для семьи, красная, не очень мощная, и чтобы бензина мало ела\"></textarea>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 101,
+          "end": 107,
+          "note": "async function startWithDescription(){"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 191,
+          "end": 201,
+          "note": "async function handleDescription(text,btn,clarify,live){"
+        }
+      ]
+    },
+    "#hint-chips": {
+      "label": "Подсказки-чипы под полем описания",
+      "backend": [
+        {
+          "file": "app/nlu.py",
+          "dir": "app/",
+          "name": "nlu.py",
+          "start": 72,
+          "end": 128,
+          "note": "FunctionDef parse"
+        },
+        {
+          "file": "app/profile.py",
+          "dir": "app/",
+          "name": "profile.py",
+          "start": 74,
+          "end": 103,
+          "note": "FunctionDef chips"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 46,
+          "end": 46,
+          "note": "<div class=\"chips\" id=\"hint-chips\">"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 101,
+          "end": 101,
+          "note": "<div class=\"chips\" id=\"describe-hint-chips\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 517,
+          "end": 521,
+          "note": "function chipsHtml(chips) {"
+        }
+      ]
+    },
+    "#start-btn": {
+      "label": "Кнопка «Дальше» на главной",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 89,
+          "end": 105,
+          "note": "POST /sessions"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 172,
+          "end": 188,
+          "note": "POST /sessions/<sid>/describe"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 51,
+          "end": 51,
+          "note": "<button class=\"primary\" id=\"start-btn\" type=\"button\">Дальше →</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 101,
+          "end": 107,
+          "note": "async function startWithDescription(){"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 191,
+          "end": 201,
+          "note": "async function handleDescription(text,btn,clarify,live){"
+        }
+      ]
+    },
+    "#home-skip": {
+      "label": "Ссылка «Не знаю — помогите вопросами»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 89,
+          "end": 105,
+          "note": "POST /sessions"
+        },
+        {
+          "file": "app/advisor.py",
+          "dir": "app/",
+          "name": "advisor.py",
+          "start": 55,
+          "end": 101,
+          "note": "FunctionDef questionnaire"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 52,
+          "end": 52,
+          "note": "<button class=\"link\" id=\"home-skip\" type=\"button\">Не знаю — помогите вопросами</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 108,
+          "end": 112,
+          "note": "async function startBlind(){"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 240,
+          "end": 253,
+          "note": "async function openForm() {"
+        }
+      ]
+    },
+    "#home-auth": {
+      "label": "Панель входа/регистрации на главной",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 102,
+          "end": 109,
+          "note": "POST /auth/login"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 61,
+          "end": 80,
+          "note": "POST /auth/register"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 84,
+          "end": 98,
+          "note": "POST /auth/demo"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 56,
+          "end": 56,
+          "note": "<div class=\"panel home-auth\" id=\"home-auth\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 119,
+          "end": 126,
+          "note": "function setHomeAuth(kind){"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 760,
+          "end": 770,
+          "note": "async function refreshUser() {"
+        }
+      ]
+    },
+    "#home-auth-form": {
+      "label": "Форма входа и регистрации",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 102,
+          "end": 109,
+          "note": "POST /auth/login"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 61,
+          "end": 80,
+          "note": "POST /auth/register"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 64,
+          "end": 64,
+          "note": "<form id=\"home-auth-form\" novalidate>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 119,
+          "end": 126,
+          "note": "function setHomeAuth(kind){"
+        }
+      ]
+    },
+    "#home-auth-seg": {
+      "label": "Переключатель «Вход / Регистрация»",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 102,
+          "end": 109,
+          "note": "POST /auth/login"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 61,
+          "end": 80,
+          "note": "POST /auth/register"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 60,
+          "end": 60,
+          "note": "<div class=\"seg\" id=\"home-auth-seg\" style=\"--n:2;--i:0\"><i class=\"seg-thumb\"></i>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 119,
+          "end": 126,
+          "note": "function setHomeAuth(kind){"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 753,
+          "end": 753,
+          "note": "const setSeg = (seg, i) => seg.style.setProperty(\"--i\", i);"
+        }
+      ]
+    },
+    "#home-auth-submit": {
+      "label": "Кнопка отправки формы входа",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 102,
+          "end": 109,
+          "note": "POST /auth/login"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 61,
+          "end": 80,
+          "note": "POST /auth/register"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 70,
+          "end": 70,
+          "note": "<button class=\"primary btn-load\" type=\"submit\" id=\"home-auth-submit\"><span class=\"btn-text\">Войти</span><i class=\"spin\"></i></button>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 64,
+          "end": 64,
+          "note": "<form id=\"home-auth-form\" novalidate>"
+        }
+      ]
+    },
+    "#home-demo": {
+      "label": "Кнопка демо-входа с анимацией",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 84,
+          "end": 98,
+          "note": "POST /auth/demo"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 72,
+          "end": 72,
+          "note": "<button type=\"button\" class=\"demo-enter\" id=\"home-demo\"><span class=\"demo-spark\">✦</span><span class=\"demo-label\">Войти в демо-режим</span><span class=\"demo-hint\">— покажу, как это"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 138,
+          "end": 138,
+          "note": "const demoMove=async el=>{const c=demoCursor(),r=el.getBoundingClientRect();c.style.left=`${r.left+Math.min(60,r.width/3)}px`;c.style.top=`${r.top+r.height/2-4}px`;el.classList.add"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 760,
+          "end": 770,
+          "note": "async function refreshUser() {"
+        }
+      ]
+    },
+    "#screen-pick": {
+      "label": "Экран выбора режима «Перед началом»",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 47,
+          "end": 50,
+          "note": "FunctionDef _check_mode"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 77,
+          "end": 77,
+          "note": "<section class=\"screen panel\" id=\"screen-pick\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 56,
+          "end": 66,
+          "note": "function show(id, { push = true } = {}) {"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 82,
+          "end": 82,
+          "note": "<button class=\"card-btn\" data-mode=\"novice\">"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 87,
+          "end": 87,
+          "note": "<button class=\"card-btn\" data-mode=\"expert\">"
+        }
+      ]
+    },
+    ".card-btn": {
+      "label": "Карточка выбора «Новичок / Эксперт»",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 47,
+          "end": 50,
+          "note": "FunctionDef _check_mode"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 89,
+          "end": 105,
+          "note": "POST /sessions"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 82,
+          "end": 82,
+          "note": "<button class=\"card-btn\" data-mode=\"novice\">"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 87,
+          "end": 87,
+          "note": "<button class=\"card-btn\" data-mode=\"expert\">"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 77,
+          "end": 77,
+          "note": "<section class=\"screen panel\" id=\"screen-pick\">"
+        }
+      ]
+    },
+    "#screen-describe": {
+      "label": "Экран описания машины",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 172,
+          "end": 188,
+          "note": "POST /sessions/<sid>/describe"
+        },
+        {
+          "file": "app/llm.py",
+          "dir": "app/",
+          "name": "llm.py",
+          "start": 222,
+          "end": 237,
+          "note": "FunctionDef understand"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 96,
+          "end": 96,
+          "note": "<section class=\"screen panel\" id=\"screen-describe\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 191,
+          "end": 201,
+          "note": "async function handleDescription(text,btn,clarify,live){"
+        }
+      ]
+    },
+    "#describe-go": {
+      "label": "Кнопка «Дальше» на экране описания",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 172,
+          "end": 188,
+          "note": "POST /sessions/<sid>/describe"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 108,
+          "end": 108,
+          "note": "<button class=\"primary\" id=\"describe-go\">Дальше</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 191,
+          "end": 201,
+          "note": "async function handleDescription(text,btn,clarify,live){"
+        }
+      ]
+    },
+    "#screen-question": {
+      "label": "Экран анкеты с вопросами",
+      "backend": [
+        {
+          "file": "app/advisor.py",
+          "dir": "app/",
+          "name": "advisor.py",
+          "start": 55,
+          "end": 101,
+          "note": "FunctionDef questionnaire"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 204,
+          "end": 216,
+          "note": "GET /sessions/<sid>/advisor"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 112,
+          "end": 112,
+          "note": "<section class=\"screen panel\" id=\"screen-question\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 240,
+          "end": 253,
+          "note": "async function openForm() {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 260,
+          "end": 297,
+          "note": "async function qaAsk(phase, run = nav.run) {"
+        }
+      ]
+    },
+    ".qa-card": {
+      "label": "Карточка одного вопроса анкеты",
+      "backend": [
+        {
+          "file": "app/advisor.py",
+          "dir": "app/",
+          "name": "advisor.py",
+          "start": 55,
+          "end": 101,
+          "note": "FunctionDef questionnaire"
+        },
+        {
+          "file": "app/questions.py",
+          "dir": "app/",
+          "name": "questions.py",
+          "start": 116,
+          "end": 123,
+          "note": "FunctionDef question_dict"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 204,
+          "end": 216,
+          "note": "GET /sessions/<sid>/advisor"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 313,
+          "end": 328,
+          "note": "function qaCard(q, n) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 334,
+          "end": 343,
+          "note": "function qaRead(card) {"
+        }
+      ]
+    },
+    ".qa-opt": {
+      "label": "Вариант ответа в анкете",
+      "backend": [
+        {
+          "file": "app/questions.py",
+          "dir": "app/",
+          "name": "questions.py",
+          "start": 116,
+          "end": 123,
+          "note": "FunctionDef question_dict"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 220,
+          "end": 243,
+          "note": "POST /sessions/<sid>/answers"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 317,
+          "end": 317,
+          "note": "const row = (value, label) => `<label class=\"qa-opt\"><input type=\"radio\" name=\"${name}\" value=\"${value}\"><span>${esc(label)}</span></label>`;"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 313,
+          "end": 328,
+          "note": "function qaCard(q, n) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 329,
+          "end": 333,
+          "note": "function qaSave(q, answer) {"
+        }
+      ]
+    },
+    "#qa-finish": {
+      "label": "Кнопка «Показать машину»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 315,
+          "end": 332,
+          "note": "GET /sessions/<sid>/market"
+        },
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 293,
+          "end": 341,
+          "note": "FunctionDef recommend_market"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 125,
+          "end": 125,
+          "note": "<button class=\"primary\" id=\"qa-finish\" type=\"button\">Показать машину</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 298,
+          "end": 312,
+          "note": "async function qaFinish() {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 376,
+          "end": 417,
+          "note": "async function showResult(promise, { instant = false, stream = false } = {}) {"
+        }
+      ]
+    },
+    "#qa-more": {
+      "label": "Кнопка «Уточнить ещё»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 204,
+          "end": 216,
+          "note": "GET /sessions/<sid>/advisor"
+        },
+        {
+          "file": "app/advisor.py",
+          "dir": "app/",
+          "name": "advisor.py",
+          "start": 55,
+          "end": 101,
+          "note": "FunctionDef questionnaire"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 126,
+          "end": 126,
+          "note": "<button class=\"secondary\" id=\"qa-more\" type=\"button\" hidden>Уточнить ещё</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 260,
+          "end": 297,
+          "note": "async function qaAsk(phase, run = nav.run) {"
+        }
+      ]
+    },
+    "#screen-loading": {
+      "label": "Экран подбора с анимацией машины",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 315,
+          "end": 332,
+          "note": "GET /sessions/<sid>/market"
+        },
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 293,
+          "end": 341,
+          "note": "FunctionDef recommend_market"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 131,
+          "end": 131,
+          "note": "<section class=\"screen panel\" id=\"screen-loading\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 376,
+          "end": 417,
+          "note": "async function showResult(promise, { instant = false, stream = false } = {}) {"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 132,
+          "end": 132,
+          "note": "<div class=\"ldr-car\" role=\"status\" aria-label=\"Loading\">"
+        }
+      ]
+    },
+    "#screen-account": {
+      "label": "Личный кабинет",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 119,
+          "end": 121,
+          "note": "GET /me"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 141,
+          "end": 146,
+          "note": "GET /me/saved"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 186,
+          "end": 195,
+          "note": "GET /me/history"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 146,
+          "end": 146,
+          "note": "<section class=\"screen\" id=\"screen-account\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 824,
+          "end": 867,
+          "note": "async function openAccount(tab = accTab, { push = true } = {}) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 760,
+          "end": 770,
+          "note": "async function refreshUser() {"
+        }
+      ]
+    },
+    "#acc-tabs": {
+      "label": "Вкладки кабинета «Сохранённые / История / Настройки»",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 141,
+          "end": 146,
+          "note": "GET /me/saved"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 186,
+          "end": 195,
+          "note": "GET /me/history"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 125,
+          "end": 132,
+          "note": "PATCH /me"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 155,
+          "end": 155,
+          "note": "<div class=\"seg\" id=\"acc-tabs\" role=\"tablist\" style=\"--n:3;--i:0\"><i class=\"seg-thumb\"></i>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 824,
+          "end": 867,
+          "note": "async function openAccount(tab = accTab, { push = true } = {}) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 753,
+          "end": 753,
+          "note": "const setSeg = (seg, i) => seg.style.setProperty(\"--i\", i);"
+        }
+      ]
+    },
+    ".car-card": {
+      "label": "Карточка сохранённой машины",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 141,
+          "end": 146,
+          "note": "GET /me/saved"
+        },
+        {
+          "file": "app/catalog.py",
+          "dir": "app/",
+          "name": "catalog.py",
+          "start": 195,
+          "end": 199,
+          "note": "FunctionDef fetch_cars"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 150,
+          "end": 156,
+          "note": "PUT /me/saved/<int:car_id>"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 813,
+          "end": 813,
+          "note": "return `<article class=\"car-card\" style=\"--i:${i}\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 809,
+          "end": 820,
+          "note": "function carCard(car, i) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 824,
+          "end": 867,
+          "note": "async function openAccount(tab = accTab, { push = true } = {}) {"
+        }
+      ]
+    },
+    "#btn-like": {
+      "label": "Кнопка «Нравится»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 369,
+          "end": 394,
+          "note": "POST /sessions/<sid>/feedback"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 150,
+          "end": 156,
+          "note": "PUT /me/saved/<int:car_id>"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 228,
+          "end": 228,
+          "note": "<button class=\"accent-btn\" id=\"btn-like\">Нравится</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 28,
+          "end": 36,
+          "note": "async function api(method, path, body) {"
+        }
+      ]
+    },
+    "#btn-dislike": {
+      "label": "Кнопка «Не то»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 369,
+          "end": 394,
+          "note": "POST /sessions/<sid>/feedback"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 227,
+          "end": 227,
+          "note": "<button class=\"glass-btn\" id=\"btn-dislike\">Не то</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 499,
+          "end": 507,
+          "note": "function openSheet(focusRemark = false) {"
+        }
+      ]
+    },
+    "#stage": {
+      "label": "Сцена просмотра машины (3D)",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 398,
+          "end": 402,
+          "note": "GET /cars/<int:car_id>"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 340,
+          "end": 348,
+          "note": "GET /model3d"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 315,
+          "end": 332,
+          "note": "GET /sessions/<sid>/market"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 178,
+          "end": 178,
+          "note": "<div id=\"stage\" hidden>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 460,
+          "end": 481,
+          "note": "async function prepareCar(car, color) {"
+        }
+      ]
+    },
+    "#viewer": {
+      "label": "3D-вьюер машины",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 340,
+          "end": 348,
+          "note": "GET /model3d"
+        },
+        {
+          "file": "app/sketchfab.py",
+          "dir": "app/",
+          "name": "sketchfab.py",
+          "start": 356,
+          "end": 425,
+          "note": "FunctionDef find_and_download"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 179,
+          "end": 179,
+          "note": "<div id=\"viewer\"></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 460,
+          "end": 481,
+          "note": "async function prepareCar(car, color) {"
+        }
+      ]
+    },
+    "#photo-stage": {
+      "label": "Фотографии машины вместо 3D",
+      "backend": [
+        {
+          "file": "app/photos.py",
+          "dir": "app/",
+          "name": "photos.py",
+          "start": 29,
+          "end": 66,
+          "note": "FunctionDef find_photos"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 415,
+          "end": 421,
+          "note": "GET /cars/<int:car_id>/media"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 181,
+          "end": 181,
+          "note": "<div class=\"photo-stage\" id=\"photo-stage\" hidden>"
+        }
+      ]
+    },
+    ".callout": {
+      "label": "Подпись к детали машины на 3D-сцене",
+      "backend": [
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 263,
+          "end": 289,
+          "note": "FunctionDef hotspots"
+        },
+        {
+          "file": "app/part_facts.py",
+          "dir": "app/",
+          "name": "part_facts.py",
+          "start": 162,
+          "end": 232,
+          "note": "FunctionDef part_texts"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 485,
+          "end": 494,
+          "note": "function onScroll() {"
+        }
+      ]
+    },
+    "#btn-moose": {
+      "label": "Кнопка «Тест на лося»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 425,
+          "end": 441,
+          "note": "GET /cars/<int:car_id>/moose"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 352,
+          "end": 365,
+          "note": "POST /moose"
+        },
+        {
+          "file": "app/moose.py",
+          "dir": "app/",
+          "name": "moose.py",
+          "start": 133,
+          "end": 135,
+          "note": "FunctionDef moose_test"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 221,
+          "end": 221,
+          "note": "<button class=\"moose-btn\" id=\"btn-moose\">Тест на лося</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 601,
+          "end": 625,
+          "note": "async function openMoose() {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 648,
+          "end": 668,
+          "note": "async function runMoose(kind) {"
+        }
+      ]
+    },
+    "#mm-report": {
+      "label": "Отчёт о тесте на лося",
+      "backend": [
+        {
+          "file": "app/moose.py",
+          "dir": "app/",
+          "name": "moose.py",
+          "start": 133,
+          "end": 135,
+          "note": "FunctionDef moose_test"
+        },
+        {
+          "file": "app/moose.py",
+          "dir": "app/",
+          "name": "moose.py",
+          "start": 89,
+          "end": 130,
+          "note": "FunctionDef collision"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 256,
+          "end": 256,
+          "note": "<dialog id=\"mm-report\" aria-labelledby=\"mm-report-title\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 685,
+          "end": 705,
+          "note": "function renderMoose(kind, data, speed) {"
+        }
+      ]
+    },
+    "#sheet": {
+      "label": "Шторка «Подробнее» о машине",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 398,
+          "end": 402,
+          "note": "GET /cars/<int:car_id>"
+        },
+        {
+          "file": "app/recommender.py",
+          "dir": "app/",
+          "name": "recommender.py",
+          "start": 124,
+          "end": 139,
+          "note": "FunctionDef explain"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 294,
+          "end": 297,
+          "note": "GET /sessions/<sid>/recommendation"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 263,
+          "end": 263,
+          "note": "<aside id=\"sheet\" class=\"sheet\" hidden aria-label=\"Подробнее о машине\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 499,
+          "end": 507,
+          "note": "function openSheet(focusRemark = false) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    "#profile-chips": {
+      "label": "Условия подбора (чипы) в шторке",
+      "backend": [
+        {
+          "file": "app/profile.py",
+          "dir": "app/",
+          "name": "profile.py",
+          "start": 74,
+          "end": 103,
+          "note": "FunctionDef chips"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 114,
+          "end": 127,
+          "note": "PATCH /sessions/<sid>/profile"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 269,
+          "end": 269,
+          "note": "<div class=\"chips\" id=\"profile-chips\"></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 517,
+          "end": 521,
+          "note": "function chipsHtml(chips) {"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 569,
+          "end": 576,
+          "note": "function removeChip(e) {"
+        }
+      ]
+    },
+    "#toast": {
+      "label": "Всплывающее уведомление",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 278,
+          "end": 278,
+          "note": "<div id=\"toast\" class=\"toast\" hidden role=\"status\"></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 38,
+          "end": 42,
+          "note": "function toast(msg) {"
+        }
+      ]
+    },
+    ".h1-accent": {
+      "label": "Слово «ВАС» в заголовке",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 36,
+          "end": 36,
+          "note": "<div class=\"hero\"><p class=\"eyebrow\">Подбор автомобиля</p><h1>Подберём машину для <span class=\"h1-accent\">ВАС</span></h1></div>"
+        }
+      ]
+    },
+    ".eyebrow": {
+      "label": "Надзаголовок раздела",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 36,
+          "end": 36,
+          "note": "<div class=\"hero\"><p class=\"eyebrow\">Подбор автомобиля</p><h1>Подберём машину для <span class=\"h1-accent\">ВАС</span></h1></div>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 39,
+          "end": 39,
+          "note": "<p class=\"eyebrow\">Шаг 1 из 2</p>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 78,
+          "end": 78,
+          "note": "<p class=\"eyebrow\">Перед началом</p>"
+        }
+      ]
+    },
+    ".level-btn > b": {
+      "label": "Название уровня (Новичок / Эксперт)",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 47,
+          "end": 50,
+          "note": "FunctionDef _check_mode"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 42,
+          "end": 42,
+          "note": "<button class=\"level-btn active\" data-mode=\"novice\" type=\"button\"><b>Новичок</b><span>Простыми словами</span></button>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 43,
+          "end": 43,
+          "note": "<button class=\"level-btn\" data-mode=\"expert\" type=\"button\"><b>Эксперт</b><span>Точные условия</span></button>"
+        }
+      ]
+    },
+    ".level-btn > span": {
+      "label": "Пояснение под названием уровня",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 47,
+          "end": 50,
+          "note": "FunctionDef _check_mode"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 42,
+          "end": 42,
+          "note": "<button class=\"level-btn active\" data-mode=\"novice\" type=\"button\"><b>Новичок</b><span>Простыми словами</span></button>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 43,
+          "end": 43,
+          "note": "<button class=\"level-btn\" data-mode=\"expert\" type=\"button\"><b>Эксперт</b><span>Точные условия</span></button>"
+        }
+      ]
+    },
+    ".card-ico": {
+      "label": "Иконка в карточке выбора режима",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 83,
+          "end": 83,
+          "note": "<span class=\"card-ico\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2 5-5 2 2-5z\"/></svg></span>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 88,
+          "end": 88,
+          "note": "<span class=\"card-ico\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 14l4-4\"/><path d=\"M3.3 17a9 9 0 1 1 17.4 0\"/></svg></span>"
+        }
+      ]
+    },
+    ".card-arrow": {
+      "label": "Стрелка в карточке выбора режима",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 85,
+          "end": 85,
+          "note": "<svg class=\"card-arrow\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 17 17 7M8 7h9v9\"/></svg>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 90,
+          "end": 90,
+          "note": "<svg class=\"card-arrow\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 17 17 7M8 7h9v9\"/></svg>"
+        }
+      ]
+    },
+    ".card-txt b": {
+      "label": "Заголовок карточки выбора",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 84,
+          "end": 84,
+          "note": "<span class=\"card-txt\"><b>Новичок</b><span>Простые вопросы, без терминов</span></span>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 89,
+          "end": 89,
+          "note": "<span class=\"card-txt\"><b>Эксперт</b><span>Привод, коробка, динамика</span></span>"
+        }
+      ]
+    },
+    ".card-txt span": {
+      "label": "Описание в карточке выбора",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 84,
+          "end": 84,
+          "note": "<span class=\"card-txt\"><b>Новичок</b><span>Простые вопросы, без терминов</span></span>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 89,
+          "end": 89,
+          "note": "<span class=\"card-txt\"><b>Эксперт</b><span>Привод, коробка, динамика</span></span>"
+        }
+      ]
+    },
+    ".modal-logo": {
+      "label": "Иконка в форме входа",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 57,
+          "end": 57,
+          "note": "<div class=\"modal-logo\"><img src=\"{{ url_for('static', filename='media/autochoice-icon.svg') }}?v=3\" alt=\"\" aria-hidden=\"true\"></div>"
+        }
+      ]
+    },
+    ".field > span": {
+      "label": "Подпись поля формы (Почта / Пароль)",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 65,
+          "end": 65,
+          "note": "<label class=\"field\"><span>Почта</span><input name=\"email\" type=\"email\" autocomplete=\"email\" maxlength=\"254\" placeholder=\"you@example.com\" required></label>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 66,
+          "end": 66,
+          "note": "<label class=\"field\"><span>Пароль</span><input name=\"password\" type=\"password\" autocomplete=\"current-password\" maxlength=\"72\" placeholder=\"Минимум 8 символов\" required></label>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 67,
+          "end": 67,
+          "note": "<label class=\"field reg-only\" hidden><span>Имя</span><input name=\"name\" maxlength=\"40\" autocomplete=\"given-name\" placeholder=\"Необязательно\"></label>"
+        }
+      ]
+    },
+    ".seg-btn": {
+      "label": "Таб «Вход / Регистрация»",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 102,
+          "end": 109,
+          "note": "POST /auth/login"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 61,
+          "end": 80,
+          "note": "POST /auth/register"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 61,
+          "end": 61,
+          "note": "<button type=\"button\" class=\"seg-btn active\" data-auth=\"login\">Вход</button>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 62,
+          "end": 62,
+          "note": "<button type=\"button\" class=\"seg-btn\" data-auth=\"register\">Регистрация</button>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 156,
+          "end": 156,
+          "note": "<button class=\"seg-btn active\" data-tab=\"saved\" role=\"tab\" type=\"button\">Сохранённые <em id=\"cnt-saved\" hidden></em></button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 119,
+          "end": 126,
+          "note": "function setHomeAuth(kind){"
+        }
+      ]
+    },
+    ".demo-spark": {
+      "label": "Искра в кнопке демо-входа",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 72,
+          "end": 72,
+          "note": "<button type=\"button\" class=\"demo-enter\" id=\"home-demo\"><span class=\"demo-spark\">✦</span><span class=\"demo-label\">Войти в демо-режим</span><span class=\"demo-hint\">— покажу, как это"
+        }
+      ]
+    },
+    ".demo-label": {
+      "label": "Текст кнопки демо-входа",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 72,
+          "end": 72,
+          "note": "<button type=\"button\" class=\"demo-enter\" id=\"home-demo\"><span class=\"demo-spark\">✦</span><span class=\"demo-label\">Войти в демо-режим</span><span class=\"demo-hint\">— покажу, как это"
+        }
+      ]
+    },
+    ".demo-hint": {
+      "label": "Подсказка у демо-входа",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 72,
+          "end": 72,
+          "note": "<button type=\"button\" class=\"demo-enter\" id=\"home-demo\"><span class=\"demo-spark\">✦</span><span class=\"demo-label\">Войти в демо-режим</span><span class=\"demo-hint\">— покажу, как это"
+        }
+      ]
+    },
+    ".avatar": {
+      "label": "Аватар в шапке",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 119,
+          "end": 121,
+          "note": "GET /me"
+        },
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 25,
+          "end": 27,
+          "note": "FunctionDef current_user"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 32,
+          "end": 32,
+          "note": "<button class=\"acc-btn\" id=\"acc-btn\" type=\"button\" aria-label=\"Аккаунт\"><span class=\"avatar\" id=\"acc-avatar\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\""
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 150,
+          "end": 150,
+          "note": "<div class=\"avatar lg\" id=\"acc-hero-avatar\"></div>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 207,
+          "end": 207,
+          "note": "<button class=\"acc-btn\" id=\"acc-btn-stage\" type=\"button\" aria-label=\"Аккаунт\"><span class=\"avatar\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r="
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 760,
+          "end": 770,
+          "note": "async function refreshUser() {"
+        }
+      ]
+    },
+    ".acc-name": {
+      "label": "Имя пользователя в шапке",
+      "backend": [
+        {
+          "file": "app/auth.py",
+          "dir": "app/",
+          "name": "auth.py",
+          "start": 119,
+          "end": 121,
+          "note": "GET /me"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 32,
+          "end": 32,
+          "note": "<button class=\"acc-btn\" id=\"acc-btn\" type=\"button\" aria-label=\"Аккаунт\"><span class=\"avatar\" id=\"acc-avatar\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\""
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 207,
+          "end": 207,
+          "note": "<button class=\"acc-btn\" id=\"acc-btn-stage\" type=\"button\" aria-label=\"Аккаунт\"><span class=\"avatar\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r="
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 760,
+          "end": 770,
+          "note": "async function refreshUser() {"
+        }
+      ]
+    },
+    ".chip .x": {
+      "label": "Крестик удаления условия",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 114,
+          "end": 127,
+          "note": "PATCH /sessions/<sid>/profile"
+        },
+        {
+          "file": "app/profile.py",
+          "dir": "app/",
+          "name": "profile.py",
+          "start": 106,
+          "end": 118,
+          "note": "FunctionDef remove_chip"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 519,
+          "end": 519,
+          "note": "? chips.map((c) => `<button class=\"chip ${c.must ? \"must\" : \"\"}\" data-key=\"${esc(c.key)}\">${esc(c.label)}<span class=\"x\">×</span></button>`).join(\"\")"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 569,
+          "end": 576,
+          "note": "function removeChip(e) {"
+        }
+      ]
+    },
+    ".q-number": {
+      "label": "Номер вопроса в анкете",
+      "backend": [
+        {
+          "file": "app/questions.py",
+          "dir": "app/",
+          "name": "questions.py",
+          "start": 116,
+          "end": 123,
+          "note": "FunctionDef question_dict"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 324,
+          "end": 324,
+          "note": "<div class=\"qa-question\"><span class=\"q-number\">${String(n).padStart(2, \"0\")}</span><span class=\"qa-question-text\">${esc(q.text)}</span></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 313,
+          "end": 328,
+          "note": "function qaCard(q, n) {"
+        }
+      ]
+    },
+    ".qa-question-text": {
+      "label": "Текст вопроса анкеты",
+      "backend": [
+        {
+          "file": "app/advisor.py",
+          "dir": "app/",
+          "name": "advisor.py",
+          "start": 55,
+          "end": 101,
+          "note": "FunctionDef questionnaire"
+        },
+        {
+          "file": "app/llm.py",
+          "dir": "app/",
+          "name": "llm.py",
+          "start": 315,
+          "end": 338,
+          "note": "FunctionDef ask_questions"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 324,
+          "end": 324,
+          "note": "<div class=\"qa-question\"><span class=\"q-number\">${String(n).padStart(2, \"0\")}</span><span class=\"qa-question-text\">${esc(q.text)}</span></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 313,
+          "end": 328,
+          "note": "function qaCard(q, n) {"
+        }
+      ]
+    },
+    ".qa-opt span": {
+      "label": "Плашка варианта ответа",
+      "backend": [
+        {
+          "file": "app/questions.py",
+          "dir": "app/",
+          "name": "questions.py",
+          "start": 116,
+          "end": 123,
+          "note": "FunctionDef question_dict"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 317,
+          "end": 317,
+          "note": "const row = (value, label) => `<label class=\"qa-opt\"><input type=\"radio\" name=\"${name}\" value=\"${value}\"><span>${esc(label)}</span></label>`;"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 313,
+          "end": 328,
+          "note": "function qaCard(q, n) {"
+        }
+      ]
+    },
+    ".qa-must .sw": {
+      "label": "Переключатель «Обязательно»",
+      "backend": [
+        {
+          "file": "app/questions.py",
+          "dir": "app/",
+          "name": "questions.py",
+          "start": 151,
+          "end": 179,
+          "note": "FunctionDef apply_answer"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 326,
+          "end": 326,
+          "note": "<label class=\"qa-must\"><input type=\"checkbox\" role=\"switch\" ${q.default_must ? \"checked\" : \"\"}><span class=\"sw\" aria-hidden=\"true\"></span>Обязательно</label>`;"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 334,
+          "end": 343,
+          "note": "function qaRead(card) {"
+        }
+      ]
+    },
+    ".pill": {
+      "label": "Бейдж типа кузова в карточке",
+      "backend": [
+        {
+          "file": "app/catalog.py",
+          "dir": "app/",
+          "name": "catalog.py",
+          "start": 195,
+          "end": 199,
+          "note": "FunctionDef fetch_cars"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 814,
+          "end": 814,
+          "note": "<div class=\"car-top\"><span class=\"pill\">${BODY_RU[car.body] || car.body}</span>${silhouette(car.body)}</div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 809,
+          "end": 820,
+          "note": "function carCard(car, i) {"
+        }
+      ]
+    },
+    ".car-sil": {
+      "label": "Силуэт автомобиля в карточке",
+      "backend": [
+        {
+          "file": "app/catalog.py",
+          "dir": "app/",
+          "name": "catalog.py",
+          "start": 195,
+          "end": 199,
+          "note": "FunctionDef fetch_cars"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 806,
+          "end": 806,
+          "note": "const silhouette = (body) => `<svg class=\"car-sil\" viewBox=\"0 0 120 44\" aria-hidden=\"true\"><path d=\"${ROOF[body] || ROOF.sedan}\"/>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 809,
+          "end": 820,
+          "note": "function carCard(car, i) {"
+        }
+      ]
+    },
+    ".car-price": {
+      "label": "Цена в карточке машины",
+      "backend": [
+        {
+          "file": "app/catalog.py",
+          "dir": "app/",
+          "name": "catalog.py",
+          "start": 195,
+          "end": 199,
+          "note": "FunctionDef fetch_cars"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 817,
+          "end": 817,
+          "note": "<div class=\"car-price\">${money(car.price)}</div></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 809,
+          "end": 820,
+          "note": "function carCard(car, i) {"
+        }
+      ]
+    },
+    ".spec b": {
+      "label": "Значение характеристики в шторке",
+      "backend": [
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 348,
+          "end": 370,
+          "note": "FunctionDef physics_specs"
+        },
+        {
+          "file": "app/catalog.py",
+          "dir": "app/",
+          "name": "catalog.py",
+          "start": 195,
+          "end": 199,
+          "note": "FunctionDef fetch_cars"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 525,
+          "end": 525,
+          "note": "`<div class=\"spec\"><b>${esc(value ?? \"—\")}</b>${esc(label)}</div>`;"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 524,
+          "end": 524,
+          "note": "const spec = (value, label) => value == null || value === \"\" ? \"\" :"
+        }
+      ]
+    },
+    ".block h3": {
+      "label": "Заголовок блока «Почему подходит / Компромиссы»",
+      "backend": [
+        {
+          "file": "app/recommender.py",
+          "dir": "app/",
+          "name": "recommender.py",
+          "start": 124,
+          "end": 139,
+          "note": "FunctionDef explain"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 270,
+          "end": 270,
+          "note": "<div class=\"block\" id=\"remark-box\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 551,
+          "end": 551,
+          "note": "<div class=\"block pros\"><h3>Почему подходит</h3><ul>${rec.reasons.map((r) => `<li>${esc(r)}</li>`).join(\"\")}</ul></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 552,
+          "end": 552,
+          "note": "${rec.tradeoffs.length ? `<div class=\"block cons\"><h3>Компромиссы</h3><ul>${rec.tradeoffs.map((r) => `<li>${esc(r)}</li>`).join(\"\")}</ul></div>` : \"\"}"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    ".sheet-handle": {
+      "label": "Ручка шторки «Подробнее»",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 264,
+          "end": 264,
+          "note": "<div class=\"sheet-handle\"></div>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 263,
+          "end": 263,
+          "note": "<aside id=\"sheet\" class=\"sheet\" hidden aria-label=\"Подробнее о машине\">"
+        }
+      ]
+    },
+    ".sheet-close": {
+      "label": "Кнопка закрытия шторки",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 265,
+          "end": 265,
+          "note": "<button class=\"sheet-close\" id=\"sheet-close\" aria-label=\"Закрыть\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M18 6 6 18M6 6l12 12\"/></svg></button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 508,
+          "end": 511,
+          "note": "function closeSheet() {"
+        }
+      ]
+    },
+    ".car-title": {
+      "label": "Название машины в шторке",
+      "backend": [
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 293,
+          "end": 341,
+          "note": "FunctionDef recommend_market"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 398,
+          "end": 402,
+          "note": "GET /cars/<int:car_id>"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 534,
+          "end": 534,
+          "note": "<h2 class=\"car-title\">${esc(c.title)}</h2>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 561,
+          "end": 561,
+          "note": "<h2 class=\"car-title\">Ничего не нашлось</h2>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    ".car-meta": {
+      "label": "Комплектация, год и цена в шторке",
+      "backend": [
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 293,
+          "end": 341,
+          "note": "FunctionDef recommend_market"
+        },
+        {
+          "file": "app/catalog.py",
+          "dir": "app/",
+          "name": "catalog.py",
+          "start": 195,
+          "end": 199,
+          "note": "FunctionDef fetch_cars"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 535,
+          "end": 535,
+          "note": "<p class=\"car-meta\">${esc(c.trim)} · ${esc(c.year)} · от ${money(c.price)}${rec.budget_note ? ` · ${esc(rec.budget_note)}` : \"\"}</p>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    ".specs-title": {
+      "label": "Заголовок группы характеристик",
+      "backend": [
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 348,
+          "end": 370,
+          "note": "FunctionDef physics_specs"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 532,
+          "end": 532,
+          "note": "const block = (title, html) => html.trim() ? `<h3 class=\"specs-title\">${title}</h3><div class=\"specs\">${html}</div>` : \"\";"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    ".spec": {
+      "label": "Плитка характеристики",
+      "backend": [
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 348,
+          "end": 370,
+          "note": "FunctionDef physics_specs"
+        },
+        {
+          "file": "app/part_facts.py",
+          "dir": "app/",
+          "name": "part_facts.py",
+          "start": 162,
+          "end": 232,
+          "note": "FunctionDef part_texts"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 525,
+          "end": 525,
+          "note": "`<div class=\"spec\"><b>${esc(value ?? \"—\")}</b>${esc(label)}</div>`;"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    ".block": {
+      "label": "Блок с пояснениями в шторке",
+      "backend": [
+        {
+          "file": "app/recommender.py",
+          "dir": "app/",
+          "name": "recommender.py",
+          "start": 124,
+          "end": 139,
+          "note": "FunctionDef explain"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 270,
+          "end": 270,
+          "note": "<div class=\"block\" id=\"remark-box\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 551,
+          "end": 551,
+          "note": "<div class=\"block pros\"><h3>Почему подходит</h3><ul>${rec.reasons.map((r) => `<li>${esc(r)}</li>`).join(\"\")}</ul></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 552,
+          "end": 552,
+          "note": "${rec.tradeoffs.length ? `<div class=\"block cons\"><h3>Компромиссы</h3><ul>${rec.tradeoffs.map((r) => `<li>${esc(r)}</li>`).join(\"\")}</ul></div>` : \"\"}"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    ".block ul li": {
+      "label": "Пункт списка «Почему подходит / Компромиссы»",
+      "backend": [
+        {
+          "file": "app/recommender.py",
+          "dir": "app/",
+          "name": "recommender.py",
+          "start": 124,
+          "end": 139,
+          "note": "FunctionDef explain"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 270,
+          "end": 270,
+          "note": "<div class=\"block\" id=\"remark-box\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 551,
+          "end": 551,
+          "note": "<div class=\"block pros\"><h3>Почему подходит</h3><ul>${rec.reasons.map((r) => `<li>${esc(r)}</li>`).join(\"\")}</ul></div>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 552,
+          "end": 552,
+          "note": "${rec.tradeoffs.length ? `<div class=\"block cons\"><h3>Компромиссы</h3><ul>${rec.tradeoffs.map((r) => `<li>${esc(r)}</li>`).join(\"\")}</ul></div>` : \"\"}"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    "a.secondary": {
+      "label": "Ссылка «Смотреть объявление»",
+      "backend": [
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 293,
+          "end": 341,
+          "note": "FunctionDef recommend_market"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    },
+    ".link.alt-open": {
+      "label": "Альтернативная машина в шторке",
+      "backend": [
+        {
+          "file": "app/engine.py",
+          "dir": "app/",
+          "name": "engine.py",
+          "start": 293,
+          "end": 341,
+          "note": "FunctionDef recommend_market"
+        },
+        {
+          "file": "app/recommender.py",
+          "dir": "app/",
+          "name": "recommender.py",
+          "start": 124,
+          "end": 139,
+          "note": "FunctionDef explain"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 553,
+          "end": 553,
+          "note": "${rec.alternatives.length ? `<div class=\"block\"><h3>Альтернативы</h3><ul>${rec.alternatives.map((a, i) => a.car ? `<li><button class=\"link alt-open\" data-alt=\"${i}\">${esc(a.title)}"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 266,
+          "end": 266,
+          "note": "<div id=\"result-body\"></div>"
+        }
+      ]
+    },
+    ".goal-note": {
+      "label": "«Я понял так…» — пересказ запроса",
+      "backend": [
+        {
+          "file": "app/llm.py",
+          "dir": "app/",
+          "name": "llm.py",
+          "start": 222,
+          "end": 237,
+          "note": "FunctionDef understand"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 267,
+          "end": 267,
+          "note": "<p class=\"goal-note\" id=\"sheet-goal\" hidden></p>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 207,
+          "end": 213,
+          "note": "function showGoal() {"
+        }
+      ]
+    },
+    ".label": {
+      "label": "Подпись «Вот что я понял»",
+      "backend": [],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 172,
+          "end": 172,
+          "note": "<p class=\"label\">Ваши условия (× — убрать):</p>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 268,
+          "end": 268,
+          "note": "<p class=\"label\">Вот что я понял (× — убрать условие):</p>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 263,
+          "end": 263,
+          "note": "<aside id=\"sheet\" class=\"sheet\" hidden aria-label=\"Подробнее о машине\">"
+        }
+      ]
+    },
+    ".chip": {
+      "label": "Чип условия подбора",
+      "backend": [
+        {
+          "file": "app/profile.py",
+          "dir": "app/",
+          "name": "profile.py",
+          "start": 74,
+          "end": 103,
+          "note": "FunctionDef chips"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 114,
+          "end": 127,
+          "note": "PATCH /sessions/<sid>/profile"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 47,
+          "end": 47,
+          "note": "<button class=\"chip\">для семьи</button><button class=\"chip\">первая машина</button>"
+        },
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 48,
+          "end": 48,
+          "note": "<button class=\"chip\">мало ест</button><button class=\"chip\">для города</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 517,
+          "end": 521,
+          "note": "function chipsHtml(chips) {"
+        }
+      ]
+    },
+    "#remark-box": {
+      "label": "Блок «Что не так?»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 369,
+          "end": 394,
+          "note": "POST /sessions/<sid>/feedback"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 270,
+          "end": 270,
+          "note": "<div class=\"block\" id=\"remark-box\">"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 499,
+          "end": 507,
+          "note": "function openSheet(focusRemark = false) {"
+        }
+      ]
+    },
+    "#remark-text": {
+      "label": "Поле замечания о машине",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 369,
+          "end": 394,
+          "note": "POST /sessions/<sid>/feedback"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 272,
+          "end": 272,
+          "note": "<textarea id=\"remark-text\" rows=\"2\" placeholder=\"Например: дороговато, хочу автомат\"></textarea>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 499,
+          "end": 507,
+          "note": "function openSheet(focusRemark = false) {"
+        }
+      ]
+    },
+    "#remark-go": {
+      "label": "Кнопка «Подобрать другую»",
+      "backend": [
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 369,
+          "end": 394,
+          "note": "POST /sessions/<sid>/feedback"
+        },
+        {
+          "file": "app/api.py",
+          "dir": "app/",
+          "name": "api.py",
+          "start": 315,
+          "end": 332,
+          "note": "GET /sessions/<sid>/market"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 273,
+          "end": 273,
+          "note": "<button class=\"primary\" id=\"remark-go\">Подобрать другую</button>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 376,
+          "end": 417,
+          "note": "async function showResult(promise, { instant = false, stream = false } = {}) {"
+        }
+      ]
+    },
+    "#model-credit": {
+      "label": "Атрибуция 3D-модели",
+      "backend": [
+        {
+          "file": "app/sketchfab.py",
+          "dir": "app/",
+          "name": "sketchfab.py",
+          "start": 356,
+          "end": 425,
+          "note": "FunctionDef find_and_download"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "app/templates/index.html",
+          "dir": "app/templates/",
+          "name": "index.html",
+          "start": 275,
+          "end": 275,
+          "note": "<p class=\"credit\" id=\"model-credit\"></p>"
+        },
+        {
+          "file": "app/static/js/app.js",
+          "dir": "app/static/js/",
+          "name": "app.js",
+          "start": 527,
+          "end": 557,
+          "note": "function renderDetails(rec) {"
+        }
+      ]
+    }
+  }
+}
