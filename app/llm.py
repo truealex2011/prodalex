@@ -17,25 +17,29 @@ import os
 import re
 import subprocess
 import threading
+import urllib.request
 from functools import lru_cache
 from pathlib import Path
 
 log = logging.getLogger("llm")
 
+
 HOME = Path(os.getenv("AUTOCHOICE_HOME") or Path.home() / ".cache" / "autochoice")
 PARSING_HOME = Path.home() / ".cache" / "avtoradar"  # те же файлы, если уже стоит проект «парсинк»
 TIMEOUT = int(os.getenv("AUTOCHOICE_LLM_TIMEOUT", "75"))
 _lock = threading.Lock()  # одна генерация за раз: на CPU параллельные запуски только мешают друг другу
+progress = threading.local()  # reporter belongs to one inference request only
 
 BODIES = ["sedan", "hatch", "suv", "wagon", "minivan"]
 COLORS = ["red", "white", "black", "blue", "gray", "green", "silver", "yellow", "orange", "brown"]
 NEEDS = ["low_consumption", "low_power", "powerful", "big_trunk", "offroad", "city", "family", "comfort", "cheap", "first_car", "premium"]
 
 SYSTEM = (
-    "Ты помощник по подбору легковых автомобилей. Заполни профиль только тем, что прямо сказано в описании клиента; "
+    "Ты помощник по подбору легковых автомобилей. Понимай описание по смыслу: исправляй опечатки и просторечия, "
+    "исходя из того, что мог иметь в виду человек. Заполни профиль только тем, что следует из описания; "
     "что не сказано — 0, any или []. goal — одно предложение простыми словами о том, чего хочет клиент. "
     "needs — из: low_consumption, low_power, powerful, big_trunk, offroad, city, family, comfort, cheap, first_car, premium (дорогая, статусная, премиум). "
-    "Не меняй желание на противоположное. Только JSON."
+    "Не меняй желание на противоположное и не додумывай цель, если описание состоит из одного звука, набора букв или бессмысленного слова: в таком случае goal — пустая строка, все поля нулевые. Только JSON."
 )
 EXAMPLE_IN = "Хочу большой надёжный внедорожник для рыбалки, бюджет до 4 млн"
 EXAMPLE_OUT = ('{"goal":"Ищет вместительный надёжный внедорожник для поездок на рыбалку, до 4 млн рублей",'
@@ -83,11 +87,33 @@ def _prompt(text: str) -> str:
             f"<|im_start|>assistant\n{EXAMPLE_OUT}<|im_end|>\n<|im_start|>user\n{clean(text[:600])}<|im_end|>\n<|im_start|>assistant\n")
 
 
-def _run(prompt: str) -> str:
-    cmd = [str(llama_exe()), "-m", str(model_file()), "-p", prompt, "--grammar", GRAMMAR, "--no-display-prompt",
+def _run(prompt: str, grammar: str | None = None, n: int = 360) -> str:
+    cmd = [str(llama_exe()), "-m", str(model_file()), "-p", prompt, "--grammar", grammar or GRAMMAR, "--no-display-prompt",
            "--no-conversation", "--simple-io", "--no-warmup", "-ngl", "0", "-t", _threads(),
-           "-c", "2048", "-n", "360", "--temp", "0", "--seed", "42", "-r", "<|im_end|>"]
+           "-c", "2048", "-n", str(n), "--temp", "0", "--seed", "42", "-r", "<|im_end|>"]
     with _lock:
+        report = getattr(progress, 'report', None)
+        if report:
+            report('Запускаю локальную модель.')
+            markers = {'"goal"': 'Разбираю формулировку запроса.', '"budget_rub"': 'Проверяю, указан ли бюджет.',
+                       '"body"': 'Проверяю параметры кузова.', '"needs"': 'Сопоставляю пожелания с критериями каталога.',
+                       '"ask"': 'Выбираю темы уточнений.', '"custom"': 'Готовлю варианты ответа.'}
+            with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                  creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0)) as proc:
+                timer = threading.Timer(TIMEOUT, proc.kill)
+                timer.start()
+                data = bytearray()
+                try:
+                    while chunk := proc.stdout.read1(4096):
+                        data.extend(chunk)
+                        for marker in list(markers):
+                            if marker.encode() in data:
+                                report(markers.pop(marker))
+                    if proc.wait() != 0:
+                        raise RuntimeError('Локальная генерация прервана')
+                finally:
+                    timer.cancel()
+                return data.decode('utf-8', 'replace')
         out = subprocess.run(cmd, capture_output=True, timeout=TIMEOUT, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     return out.stdout.decode("utf-8", "replace")
 
@@ -107,8 +133,8 @@ HARD_EVIDENCE = {
     "transmission": r"автомат|механик|акпп|мкпп|вариатор|коробк|переключ|сцеплен",
     "drive": r"привод|4x4|4х4|полн|бездорож|снег|грязь|дач|внедорож|грунт|клиренс",
     "fuel": r"бензин|дизел|гибрид|электро|заправ",
-    "seats": r"\d|мест|человек|пят|шест|сем|дет|ребен|пассажир|двое|трое|четв|вся |друз|команд|бабуш|дед",
-    "budget": r"\d|бюджет|дешев|недорог|млн|тыс|рубл|₽",
+    "seats": r"мест|человек|семь[яюеи]|детей|ребен|пассажир|двое|трое|четверо|пятеро|друз|команд|бабуш|дед",
+    "budget": r"бюджет|млн|миллион|тыс|рубл|₽|лям",
 }
 # кузов принимается только если клиент назвал именно его: «большая семья» кузова не определяет
 BODY_EVIDENCE = {
@@ -180,17 +206,62 @@ def strip_slang(text: str) -> str:
     return re.sub(r"\s{2,}", " ", _SLANG.sub(" ", text or "")).strip(" ,.!")
 
 
+_TYPOS = {
+    'рыбкалка': 'рыбалка', 'рыбалочка': 'рыбалка', 'рыбаченье': 'рыбалка', 'рыбачить': 'рыбалка',
+    'бабка': 'бабушка', 'дедка': 'дедушка', 'детки': 'дети', 'малыши': 'дети',
+    'х5': 'x5', 'х7': 'x7', 'а4': 'a4', 'м5': 'm5', 'лк': 'land cruiser',
+    'внедорожек': 'внедорожник', 'кроссоверка': 'кроссовер', 'машинка': 'машина',
+}
+
+
+def fix_typos(text: str) -> str:
+    return ' '.join(_TYPOS.get(w.lower(), w) for w in str(text or '').split())
+
+
 @lru_cache(maxsize=128)
 def understand(text: str) -> dict | None:
     """Описание клиента -> {"hard", "nice", "color", "goal"}. None — нейросеть недоступна или не справилась."""
-    text = strip_slang(text)
+    text = fix_typos(strip_slang(text))
     if not available():
         return None
     try:
         out = _run(_prompt(text))
-        return clean(first_json(out, "{"), text)
+        result = clean(first_json(out, "{"), text)
+        if result["goal"] is None and not result["hard"] and not result["nice"] and len(text.strip()) > 3:
+            cloud = _cloud_understand(text)
+            if cloud:
+                return cloud
+        return result
     except Exception as e:      # таймаут, битый вывод, сбой процесса — подбор продолжается на правилах
         log.warning("нейросеть не ответила: %s", e)
+        return None
+
+
+def _cloud_understand(text: str) -> dict | None:
+    """Усиление смысла через Spirit: большая модель поймёт опечатку, которую не разобрала локальная."""
+    key_file = Path.home() / '.config' / 'opencode' / 'spirit-api-key'
+    if not key_file.exists():
+        return None
+    report = getattr(progress, 'report', None)
+    if report:
+        report('Уточняю смысл у большой языковой модели.')
+    body = {
+        'model': os.getenv('SPIRIT_MODEL', 'openai/gpt-6.1-sol'), 'temperature': 0,
+        'messages': [
+            {'role': 'system', 'content': SYSTEM + ' Верни ТОЛЬКО JSON полями goal, budget_rub, seats_min, body, transmission, drive, fuel, needs.'},
+            {'role': 'user', 'content': 'Описание клиента: ' + text[:400]},
+        ],
+    }
+    try:
+        req = urllib.request.Request(
+            os.getenv('SPIRIT_URL', 'https://llm-proxy.spirit.t-education.com/chat/completions'),
+            data=json.dumps(body).encode(),
+            headers={'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key_file.read_text(encoding='utf-8').strip()})
+        with urllib.request.urlopen(req, timeout=40) as r:
+            content = json.loads(r.read().decode('utf-8'))['choices'][0]['message']['content']
+        return clean(first_json(content, '{'), text)
+    except Exception as exc:
+        log.warning('Spirit не уточнил смысл: %s', exc)
         return None
 
 
@@ -255,13 +326,9 @@ def ask_questions(description: str, known: str, mode: str, fields: dict[str, str
     clean = lambda s: re.sub(r"[<>|]", " ", s)
     prompt = (f"<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n{clean(QA_EXAMPLE_IN[mode])}<|im_end|>\n"
               f"<|im_start|>assistant\n{QA_EXAMPLE_OUT[mode]}<|im_end|>\n<|im_start|>user\n{clean(user)}<|im_end|>\n<|im_start|>assistant\n")
-    cmd = [str(llama_exe()), "-m", str(model_file()), "-p", prompt, "--grammar", _qa_grammar(list(fields) or ["body"]), "--no-display-prompt",
-           "--no-conversation", "--simple-io", "--no-warmup", "-ngl", "0", "-t", _threads(), "-c", "2048",
-           "-n", "380", "--temp", "0.2", "--seed", "7", "-r", "<|im_end|>"]
     try:
-        with _lock:
-            out = subprocess.run(cmd, capture_output=True, timeout=TIMEOUT, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-        data = first_json(out.stdout.decode("utf-8", "replace"), "{")
+        out = _run(prompt, grammar=_qa_grammar(list(fields) or ["body"]), n=380)
+        data = first_json(out, "{")
         asks = [{"field": x["field"], "text": x["text"]} for x in data.get("ask", []) if x.get("field") in fields]
         custom = [{"text": c["text"], "options": [{"label": o["label"], "need": o["need"]} for o in c["options"] if o["need"] in NEEDS]}
                   for c in data.get("custom", [])]
@@ -274,9 +341,10 @@ def ask_questions(description: str, known: str, mode: str, fields: dict[str, str
 # ───────────── планировщик: конкретные модели под описание (как plan() в «парсинке») ─────────────
 SUGGEST_SYSTEM = ("Ты эксперт по автомобилям в России. Назови 6 конкретных моделей легковых машин (марка и модель латиницей), "
                   "которые лучше всего подходят под описание клиента и продаются в России новыми или с пробегом. "
-                  "Учитывай класс, цену и характер, которых он хочет. Только JSON.")
-SUGGEST_IN = "Нужна недорогая надёжная машина для семьи с двумя детьми"
-SUGGEST_OUT = '{"models":["Lada Largus","Skoda Octavia","Kia Rio","Hyundai Solaris","Renault Logan","Volkswagen Polo"]}'
+                  "Выбирай по смыслу запроса: класс, цену, характер, кузов, сценарий. "
+                  "Не используй никакой готовый список и не повторяй прошлые ответы — ориентируйся только на конкретный запрос. "
+                  "Марки должны быть разными, если того не запрещает запрос. Только JSON.")
+SUGGEST_EXAMPLE_MODELS = {'lada largus', 'skoda octavia', 'kia rio', 'hyundai solaris', 'renault logan', 'volkswagen polo'}
 
 
 _suggest_cache: dict[str, list[str] | None] = {}
@@ -301,8 +369,7 @@ def suggest_models(description: str, known: str = "") -> list[str] | None:
                r'item ::= "\"" [A-Za-z0-9 .\-]{3,40} "\""' + "\n" + r'ws ::= [ \t\n]*')
     clean = lambda s: re.sub(r"[<>|]", " ", s)
     user = f"{description[:500]}" + (f"\nПонято: {known[:300]}" if known else "")
-    prompt = (f"<|im_start|>system\n{SUGGEST_SYSTEM}<|im_end|>\n<|im_start|>user\n{SUGGEST_IN}<|im_end|>\n<|im_start|>assistant\n"
-              f"{SUGGEST_OUT}<|im_end|>\n<|im_start|>user\n{clean(user)}<|im_end|>\n<|im_start|>assistant\n")
+    prompt = (f"<|im_start|>system\n{SUGGEST_SYSTEM}<|im_end|>\n<|im_start|>user\n{clean(user)}<|im_end|>\n<|im_start|>assistant\n")
     cmd = [str(llama_exe()), "-m", str(model_file()), "-p", prompt, "--grammar", grammar, "--no-display-prompt", "--no-conversation",
            "--simple-io", "--no-warmup", "-ngl", "0", "-t", _threads(), "-c", "1536", "-n", "120",
            "--temp", "0", "--seed", "42", "-r", "<|im_end|>"]
@@ -312,6 +379,9 @@ def suggest_models(description: str, known: str = "") -> list[str] | None:
                 return _suggest_cache[key]
             out = subprocess.run(cmd, capture_output=True, timeout=TIMEOUT, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         res = [str(x) for x in first_json(out.stdout.decode("utf-8", "replace"), "{").get("models", [])]
+        # Маленькая модель иногда копирует заученный список — такой ответ бесполезен.
+        if res and {str(x).lower() for x in res} == SUGGEST_EXAMPLE_MODELS:
+            return None
         _suggest_cache[key] = res
         return res
     except Exception as e:

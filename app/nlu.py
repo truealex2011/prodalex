@@ -9,7 +9,7 @@ import re
 from . import llm
 from .brands import LUXURY, PREMIUM, find_brands
 from .models_text import find_models
-from .profile import ProfileDelta
+from .profile import ProfileDelta, chips, empty_profile, merge
 
 _END = r"(?:ая|ый|ой|ую|ого|ее|енькая|енький|еньк\w*)\b"
 COLORS = {  # проверяются по порядку, текст уже приведён к «е» вместо «ё»
@@ -70,6 +70,7 @@ def _market_paths() -> list[str]:
 
 
 def parse(text: str) -> ProfileDelta:
+    text = llm.fix_typos(text)
     t = text[:1000].lower().replace("ё", "е")
     hard: dict = {}
     nice: dict = {}
@@ -127,6 +128,13 @@ def parse(text: str) -> ProfileDelta:
     return ProfileDelta(hard=hard, nice=nice, color=color, budget_unknown=budget_unknown, skip_slots=skip)
 
 
+CLARIFY = 'Я не понял, что вы имели в виду. Какая машина вам нужна? Можно назвать хотя бы одно пожелание: марку, бюджет или для чего вы будете ездить.'
+
+
+def understood(delta: ProfileDelta) -> bool:
+    return bool(delta.hard.model_dump(exclude_none=True) or delta.nice or delta.color or delta.budget_unknown or delta.skip_slots)
+
+
 def parse_ex(text: str) -> tuple[ProfileDelta, str]:
     """Описание -> (изменение профиля, чем разобрано). Если установлена нейросеть, она понимает смысл
     и пересказывает цель, а правила перекрывают её числа и жёсткие условия (бюджет, места, коробка), чтобы ничего не выдумать."""
@@ -144,5 +152,14 @@ def parse_ex(text: str) -> tuple[ProfileDelta, str]:
     if "premium" in nice:
         nice.pop("cheap", None)
     delta = ProfileDelta(hard=hard, nice=nice, color=rules.color or res["color"], budget_unknown=rules.budget_unknown,
-                         goal=res["goal"], skip_slots=rules.skip_slots)
+                         skip_slots=rules.skip_slots)
+    # A generated sentence isn't evidence. Summarise only validated profile fields.
+    conditions = chips(merge(empty_profile(), delta))
+    goal = '; '.join(c['label'] for c in conditions)
+    generic = {'ищу легковой автомобиль', 'ищу бюджетный легковой автомобиль', 'ищу автомобиль'}
+    meaningful = [w for w in re.findall(r'[а-яё]{4,}', text.lower()) if w not in {'хочу', 'нужна', 'нужен', 'машину', 'машина', 'авто', 'автомобиль', 'ищу', 'была', 'был'}]
+    gibberish = not meaningful and not re.search(r'[a-z]{4,}', text.lower())
+    if (not goal or (res.get('goal') or '').lower().strip('.') in generic) and not gibberish and len(text.strip()) > 2:
+        goal = f'Описание клиента: {text.strip()[:120]}'
+    delta.goal = goal or None
     return delta, "llm+rules"

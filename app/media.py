@@ -197,7 +197,8 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
         allow = bool(current_app.config.get("MODEL_ALLOW_NC", True))
         similar = None
         try:
-            model = sketchfab.find_and_download(car, out_dir, cache_dir, allow)
+            expanded = sketchfab._expand_names(car)
+            model = sketchfab.find_and_download(expanded, out_dir, cache_dir, allow, sketchfab.local_candidates(expanded))
         except Exception as e:
             log.warning("3D для %s: %s", name, e)
             model = None

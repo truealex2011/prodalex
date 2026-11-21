@@ -12,8 +12,8 @@
   <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Inter.ttf') }}">
   <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Unbounded.ttf') }}">
   <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Benzin-Semibold.ttf') }}">
-  <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Nauryz.ttf') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/demo.css') }}">
   <script type="importmap">
   {"imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -32,15 +32,44 @@
   </header>
 
   <section class="screen active" id="screen-mode">
-    <div class="hero">
-      <p class="eyebrow">Подбор автомобиля</p>
-      <h1>Подберём машину для<br><span class="h1-accent">ВАС</span></h1>
-      <p class="lead">Сервис по подбору автомобилей для ваших задач</p>
-    </div>
-    <div class="mode-panel">
-      <p class="panel-title">Опишите машину своими словами</p>
-      <p class="mode-hint">Остальное уточним короткими вопросами.</p>
-      <button class="primary" id="start-btn" type="button">Начать подбор</button>
+    <div class="hero"><p class="eyebrow">Подбор автомобиля</p><h1>Подберём машину для <span class="h1-accent">ВАС</span></h1></div>
+    <div class="home-flow" id="home-flow">
+      <div class="panel home-describe">
+        <p class="eyebrow">Шаг 1 из 2</p>
+        <h2>Какая машина нужна?</h2>
+        <div class="home-levels" id="home-levels">
+          <button class="level-btn active" data-mode="novice" type="button"><b>Новичок</b><span>Простыми словами</span></button>
+          <button class="level-btn" data-mode="expert" type="button"><b>Эксперт</b><span>Точные условия</span></button>
+        </div>
+        <textarea id="home-describe" rows="6" maxlength="1000" placeholder="Например: для семьи, красная, не очень мощная, и чтобы бензина мало ела"></textarea>
+        <div class="chips" id="hint-chips">
+          <button class="chip">для семьи</button><button class="chip">первая машина</button>
+          <button class="chip">мало ест</button><button class="chip">для города</button>
+          <button class="chip">на дачу</button><button class="chip">автомат</button>
+        </div>
+        <button class="primary" id="start-btn" type="button">Дальше →</button>
+        <button class="link" id="home-skip" type="button">Не знаю — помогите вопросами</button>
+        <p id="describe-clarify" role="alert" hidden></p>
+        <details class="qa-thought" id="describe-live" hidden><summary>Ход разбора описания</summary><div role="log"></div></details>
+      </div>
+      <div class="panel home-auth" id="home-auth">
+        <div class="modal-logo"><img src="{{ url_for('static', filename='media/autochoice-icon.svg') }}?v=3" alt="" aria-hidden="true"></div>
+        <h3 id="home-auth-title">С возвращением</h3>
+        <p class="modal-sub" id="home-auth-sub">Войдите, чтобы сохранять машины и историю поиска</p>
+        <div class="seg" id="home-auth-seg" style="--n:2;--i:0"><i class="seg-thumb"></i>
+          <button type="button" class="seg-btn active" data-auth="login">Вход</button>
+          <button type="button" class="seg-btn" data-auth="register">Регистрация</button>
+        </div>
+        <form id="home-auth-form" novalidate>
+          <label class="field"><span>Почта</span><input name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com" required></label>
+          <label class="field"><span>Пароль</span><input name="password" type="password" autocomplete="current-password" maxlength="72" placeholder="Минимум 8 символов" required></label>
+          <label class="field reg-only" hidden><span>Имя</span><input name="name" maxlength="40" autocomplete="given-name" placeholder="Необязательно"></label>
+          <ul class="pw-rules reg-only" id="home-pw-rules" hidden><li data-rule="len">8+ символов</li><li data-rule="letter">Буквы</li><li data-rule="digit">Цифры</li></ul>
+          <p class="form-error" id="home-auth-error" role="alert" hidden></p>
+          <button class="primary btn-load" type="submit" id="home-auth-submit"><span class="btn-text">Войти</span><i class="spin"></i></button>
+        </form>
+        <button type="button" class="demo-enter" id="home-demo"><span class="demo-spark">✦</span><span class="demo-label">Войти в демо-режим</span><span class="demo-hint">— покажу, как это работает</span></button>
+      </div>
     </div>
   </section>
 
@@ -68,11 +97,13 @@
     <h2>Какая машина нужна?</h2>
     <textarea id="describe-text" rows="4" maxlength="1000"
       placeholder="Например: для семьи, красная, не очень мощная, и чтобы бензина мало ела"></textarea>
-    <div class="chips" id="hint-chips">
+    <div class="chips" id="describe-hint-chips">
       <button class="chip">для семьи</button><button class="chip">первая машина</button>
       <button class="chip">мало ест</button><button class="chip">для города</button>
       <button class="chip">на дачу</button><button class="chip">автомат</button>
     </div>
+    <p id="describe-text-clarify" role="alert" hidden></p>
+    <details class="qa-thought" id="describe-text-live" hidden><summary>Ход разбора описания</summary><div role="log"></div></details>
     <button class="primary" id="describe-go">Дальше</button>
     <button class="link" id="describe-skip">Не знаю — помогите вопросами</button>
   </section>
@@ -84,6 +115,10 @@
     <p class="goal-note" id="q-goal" hidden></p>
     <div class="qa-known" id="qa-known"></div>
     <p class="qa-status" role="status"><i class="qa-wait" id="qa-wait" hidden></i><span id="qa-status-text"></span></p>
+    <details class="qa-thought" id="qa-thought" hidden>
+      <summary>Ход подбора и пояснения</summary><div role="log"></div>
+      <div id="qa-thought-text"></div>
+    </details>
     <div class="qa-list" id="qa-list"></div>
     <div class="qa-actions">
       <button class="primary" id="qa-finish" type="button">Показать машину</button>
@@ -238,29 +273,6 @@
   </div>
   <p class="credit" id="model-credit"></p>
 </aside>
-
-<!-- Вход и регистрация -->
-<dialog id="auth-dialog" class="modal" aria-labelledby="auth-title">
-  <form id="auth-form" novalidate>
-    <button type="button" class="modal-x" id="auth-cancel" aria-label="Закрыть"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-    <div class="modal-logo"><img src="{{ url_for('static', filename='media/autochoice-icon.svg') }}?v=3" alt="" aria-hidden="true"></div>
-    <h2 id="auth-title">С возвращением</h2>
-    <p class="modal-sub" id="auth-sub">Войдите, чтобы сохранять машины и историю поиска</p>
-    <div class="seg" id="auth-seg" style="--n:2;--i:0"><i class="seg-thumb"></i>
-      <button type="button" class="seg-btn active" data-auth="login">Вход</button>
-      <button type="button" class="seg-btn" data-auth="register">Регистрация</button>
-    </div>
-    <label class="field"><span>Почта</span><input name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com" required></label>
-    <label class="field"><span>Пароль</span>
-      <div class="pw"><input name="password" type="password" autocomplete="current-password" maxlength="72" placeholder="Минимум 8 символов" required>
-        <button type="button" class="pw-eye" id="pw-eye" aria-label="Показать пароль"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-    </label>
-    <ul class="pw-rules reg-only" id="pw-rules" hidden><li data-rule="len">8+ символов</li><li data-rule="letter">Буквы</li><li data-rule="digit">Цифры</li></ul>
-    <label class="field reg-only" hidden><span>Имя <em>необязательно</em></span><input name="name" maxlength="40" autocomplete="given-name" placeholder="Как к вам обращаться"></label>
-    <p class="form-error" id="auth-error" role="alert" hidden></p>
-    <button class="primary btn-load" type="submit" id="auth-submit"><span class="btn-text">Войти</span><i class="spin"></i></button>
-  </form>
-</dialog>
 
 <div id="toast" class="toast" hidden role="status"></div>
 <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>

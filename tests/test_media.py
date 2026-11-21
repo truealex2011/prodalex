@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
 
-from app.sketchfab import best_model, glb_dims, license_code, license_ok, looks_like_car, names_for, verify_glb  # noqa: E402
+from app.sketchfab import best_model, glb_dims, license_code, license_ok, local_candidates, looks_like_car, names_for, verify_glb  # noqa: E402
 
 UID = lambda n: f"{n:032x}"
 
@@ -36,6 +36,15 @@ def test_license_rules():
     assert not license_ok({"label": "Standard"}, allow_nc=True)
     assert license_code("https://creativecommons.org/licenses/by/4.0/", "x") == "CC-BY-4.0"
     assert license_code("https://creativecommons.org/publicdomain/zero/1.0/", "x") == "CC0-1.0"
+
+
+def test_open_index_prefers_plain_car_names():
+    for car in ({'brand': 'Kia', 'model': 'Sportage', 'year': 2019, 'body': 'suv'},
+                {'brand': 'Toyota', 'model': 'RAV4', 'year': 2020, 'body': 'suv'},
+                {'brand': 'Skoda', 'model': 'Octavia', 'year': 2020, 'body': 'sedan'}):
+        pool = local_candidates(car)
+        assert pool, car
+        assert all(not any(w in m['name'].lower() for w in ('race','racing','nascar','lidar','tuning','police')) for m in pool)
 
 
 def test_names_for_translit_and_shortening():

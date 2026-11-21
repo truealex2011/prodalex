@@ -2,5 +2,8 @@
 __pycache__/
 *.pyc
 .venv/
-
+.pgdata/
+.pytest_cache/
+data/cache/
+parser/node_modules/
 assets_private/

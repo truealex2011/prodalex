@@ -2,6 +2,7 @@
 
 Вход — подписанная cookie сессии Flask (HttpOnly, SameSite=Lax). Пароль хранится только хешем.
 """
+import os
 import re
 
 from flask import Blueprint, jsonify, request, session as cookie
@@ -77,6 +78,24 @@ def register():
         raise ApiError("email_taken", "Эта почта уже зарегистрирована — попробуйте войти", 409)
     _login(u)
     return jsonify(_public(u)), 201
+
+
+@bp.post("/auth/demo")
+def demo_login():
+    """Демо-вход: без пароля создаёт (или находит) демо-аккаунт и логинит его.
+
+    Нужен только для показа анимации подстановки данных в интерфейсе: реальные
+    объявления/история сохраняются в этом же аккаунте, как у обычного пользователя.
+    """
+    email = "demo@autochoice.local"
+    u = User.query.filter_by(email=email).first()
+    if u is None:
+        u = User(email=email, password_hash=generate_password_hash(os.urandom(24).hex()),
+                 display_name="Демо", mode="expert")
+        db.session.add(u)
+        db.session.commit()
+    _login(u)
+    return jsonify(_public(u))
 
 
 @bp.post("/auth/login")

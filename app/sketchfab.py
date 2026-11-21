@@ -79,6 +79,8 @@ def best_model(candidates: list[dict], name: str, year=None, body=None):
         years = [int(y) for y in re.findall(r"\b(?:19|20)\d{2}\b", suffix)]
         rng = re.search(r"\b((?:19|20)\d{2})\s*[-–—]\s*((?:19|20)\d{2})\b", m.get("name") or "")
         year_match = bool(year and (year in years or (rng and int(rng[1]) <= int(year) <= int(rng[2]))))
+        if year and not year_match and not rng and years:
+            year_match = any(abs(y - year) <= 3 for y in years)
         if year and years and not year_match:
             continue
         cand_body = _body_group(suffix)
@@ -176,12 +178,62 @@ def _index_db(cache_dir: Path) -> sqlite3.Connection:
 
 
 def mirror_paths(uids: list[str], cache_dir: Path) -> dict[str, str]:
+    if not uids:
+        return {}
     con = _index_db(cache_dir)
     try:
         marks = ",".join("?" * len(uids))
         return dict(con.execute(f"SELECT uid, path FROM p WHERE uid IN ({marks})", uids)) if uids else {}
     finally:
         con.close()
+
+
+_open_car_index: list[list] | None = None
+
+
+def open_car_index() -> list[list]:
+    global _open_car_index
+    if _open_car_index is None:
+        path = Path(__file__).resolve().parent.parent / 'data' / 'catalog' / 'open_car_index.json'
+        _open_car_index = json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
+    return _open_car_index
+
+
+def _expand_names(car: dict) -> dict:
+    brand = str(car.get('brand') or '')
+    names = {'Lada': 'LADA', 'lada': 'LADA', 'УАЗ': 'UAZ', 'уаз': 'UAZ', 'Москвич': 'Moskvich',
+             'Volkswagen': 'Volkswagen', 'Mercedes-Benz': 'Mercedes', 'Mercedes': 'Mercedes-Benz'}
+    return {**car, 'brand': names.get(brand, brand), 'model': {'Granta': 'Granta', 'Patriot': 'Patriot'}.get(car.get('model'), car.get('model'))}
+
+
+def local_candidates(car: dict) -> list[dict]:
+    """Кандидаты из 27 тыс. открытых GLB с атрибуцией, отобранные по названию и классу."""
+    brand=normal(str(car.get('brand','')))
+    model=normal(str(car.get('model','')))
+    want = {w for w in normal(' '.join(names_for(car))).split() if len(w) > 1} - {'russian','rider','online','race','nascar','heat','nascar'}
+    body = car.get('body') if car.get('body') in BODIES else _body_group(car.get('body') or '')
+    year = car.get('year')
+    out = []
+    for uid, name, author, lic, faces, likes, path in open_car_index():
+        title = normal(name)
+        words=set(title.split())
+        exact_brand = brand and brand in words
+        model_hit = model and any(model == x or (len(model) > 3 and (model in x or model[:-1] in x)) for x in words)
+        bad = any(x in title for x in ('nascar','lidarscan','tank','granturismo','race','racing','police','tuning','scout','for scetch'))
+        if bad or not ((exact_brand and model_hit) or (want <= words) or (model and model_hit and 'russian' in title)):
+            continue
+        if faces < 20_000 or faces > MAX_FACES or PARTS.search(title) or LOW_QUALITY.search(title):
+            continue
+        years = [int(y) for y in re.findall(r'\b(?:19|20)\d{2}\b', title)]
+        if year and years and min(abs(y - year) for y in years) > 12:
+            continue
+        if body and body not in ('suv',) and _body_group(title) not in (None, body):
+            continue
+        out.append({'uid': uid, 'name': name, 'user': {'displayName': author}, 'license': {'label': lic},
+                    'faceCount': faces, 'likeCount': likes, 'isDownloadable': True, 'local_path': path})
+    quality=lambda m: sum(1 for w in want if w in normal(m['name']))*20 + min(6,math.log10(1+m['faceCount']))*2 + min(4,math.log10(1+m['likeCount'])) + (10 if year and str(year) in m['name'] else 0) - (100 if any(b in normal(m['name']) for b in ('nascar','lidarscan','tank','granturismo')) else 0)
+    out.sort(key=quality,reverse=True)
+    return out[:48]
 
 
 # ───────────── файл ─────────────
@@ -267,13 +319,15 @@ def _read_limited(resp) -> bytes:
     return b"".join(chunks)
 
 
-def download_glb(uid: str, mirror_path: str | None, dest: Path) -> int:
+def download_glb(uid: str, mirror_path: str | None, dest: Path, direct: bool = False) -> int:
     """Скачивает GLB в dest. Возвращает размер. Токен Sketchfab (если есть) — официальный путь, иначе зеркало."""
     token = os.getenv("SKETCHFAB_TOKEN")
     url = None
     if token:
         info = _json(f"{API}/models/{uid}/download", headers={"Authorization": f"Token {token}"})
         url = (info.get("glb") or {}).get("url")
+    if not url and direct and re.fullmatch(rf"glbs/\d+-\d+/{uid}\.glb", mirror_path or ''):
+        url = HF + mirror_path
     if not url:
         if not mirror_path or not re.fullmatch(rf"glbs/\d+-\d+/{uid}\.glb", mirror_path):
             raise LookupError("файл модели недоступен")
@@ -299,10 +353,29 @@ def good_quality(m: dict) -> bool:
     return not BAD_SOURCE.search(name) and not re.search(r"(low ?poly|psx|stylized|cartoon|toy|minecraft|lego|roblox)", normal(name)) and (m.get("faceCount") or 0) >= 20_000
 
 
-def find_and_download(car: dict, out_dir: Path, cache_dir: Path, allow_nc: bool = True) -> dict | None:
+def find_and_download(car: dict, out_dir: Path, cache_dir: Path, allow_nc: bool = True, local_pool: list[dict] | None = None) -> dict | None:
     """Ищет модель машины, скачивает GLB в out_dir. None — подходящей скачиваемой модели нет."""
     year = car.get("year")
     last_error = None
+    if local_pool is not None:
+        pool = [m for m in local_pool if license_ok(m.get('license'), allow_nc) and good_quality(m)]
+        while pool:
+            sel = best_model(pool, names_for(car)[0], year if not car.get('fallback') else None, car.get('body'))
+            if not sel:
+                break
+            dest = out_dir / f"{sel['uid']}.glb"
+            try:
+                size = dest.stat().st_size if dest.exists() else download_glb(sel['uid'], sel['local_path'], dest, direct=True)
+            except (ValueError, LookupError, OSError) as exc:
+                log.warning('модель %s пропущена: %s', sel['uid'], exc)
+                pool = [m for m in pool if m['uid'] != sel['uid']]
+                continue
+            user = sel.get('user') or {}
+            return {'uid': sel['uid'], 'title': sel['name'], 'author': user.get('displayName') or 'Sketchfab',
+                    'license': (sel.get('license') or {}).get('label'),
+                    'license_url': 'https://creativecommons.org/licenses/by/4.0/', 'license_code': 'CC-BY-4.0',
+                    'source_url': f"https://sketchfab.com/3d-models/{sel['uid']}", 'size': size, 'file': f"{sel['uid']}.glb"}
+        return None
     for name in names_for(car):
         pool, seen = [], set()
         for q in dict.fromkeys([name, f"{name} {year}" if year else name]):

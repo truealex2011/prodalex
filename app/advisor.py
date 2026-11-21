@@ -89,7 +89,16 @@ def questionnaire(profile: dict, mode: str, asked: list, cars: list[dict], descr
         out.append(question_dict(k, mode, text if text.endswith("?") else None, profile))
     if not out and phase == "initial" and ranked:        # в первом раунде без вопросов не оставляем
         out = [question_dict(ranked[0], mode, profile=profile)]
-    return {"questions": out, "ai": True}
+    # Рассуждения агента: что он понял и почему спрашивает именно это.
+    thought = description.strip()[:240]
+    pieces = [f"Описание: {thought}"] if thought else []
+    if known:
+        pieces.append("Уже известно: " + known.replace("; ", ", "))
+    if out:
+        pieces.append("Уточняю: " + ", ".join(q["text"].rstrip("?") for q in out[:5]) + " — чтобы сузить подбор.")
+    else:
+        pieces.append("Данных достаточно, можно подбирать машину.")
+    return {"questions": out, "ai": True, "reasoning": " ".join(pieces)}
 
 
 def _known(profile: dict) -> dict:

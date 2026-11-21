@@ -39,10 +39,25 @@ def test_llm_adds_meaning_and_goal(monkeypatch):
     monkeypatch.setattr(llm, "_run", lambda p: answer(body=["minivan"], needs=["family", "big_trunk", "выдумка"], seats_min=7))
     delta, engine = nlu.parse_ex("нужна машина чтобы вся семья с вещами влезла")
     assert engine == "llm+rules"
-    assert delta.goal == "Ищет семейную машину"
+    assert "для семьи" in delta.goal and "большой багажник" in delta.goal
     assert delta.hard.body is None            # кузов в тексте не назван — догадку модели не принимаем
     assert delta.hard.seats_min == 7
     assert set(delta.nice) == {"family", "big_trunk"}   # значение вне списка отброшено
+
+
+@pytest.mark.parametrize('text', ['шршщ ззз ыыы', 'asdf qwer', '?!? 4567', 'хочу машину'])
+def test_unsupported_goal_does_not_start_selection(monkeypatch, text):
+    monkeypatch.setattr(llm, '_run', lambda p: answer(goal='Ищу автомобиль для городских поездок',
+                       needs=['city'], seats_min=4, budget_rub=4000000, body=['suv']))
+    delta, _ = nlu.parse_ex(text)
+    assert not delta.hard.model_dump(exclude_none=True) and not delta.nice
+    assert delta.goal is None or delta.goal.startswith('Описание клиента:')
+
+
+def test_short_supported_request_does_not_inherit_invented_purpose(monkeypatch):
+    monkeypatch.setattr(llm, '_run', lambda p: answer(goal='Для поездок по городу', needs=['city']))
+    delta, _ = nlu.parse_ex('красная')
+    assert nlu.understood(delta) and delta.goal == 'цвет: красный'
 
 
 def test_rules_override_llm_numbers(monkeypatch):

@@ -24,7 +24,7 @@ from pathlib import Path
 from . import brands, models_text, part_facts
 from .recommender import explain, score
 
-FAST_CARDS = int(os.getenv("PARSER_FAST_CARDS", "10"))     # сколько объявлений с модели разбирать подробно: меньше — быстрее
+FAST_CARDS = int(os.getenv("PARSER_FAST_CARDS", "4"))     # сколько объявлений с модели разбирать подробно: меньше — быстрее
 PARSER_URL = os.getenv("PARSER_URL", "http://localhost:3100")
 PARSER_DIR = Path(os.getenv("PARSER_DIR", r"C:\Users\1\Desktop\парсинк"))
 PREMIUM_BRANDS = {"mercedes-benz", "bmw", "audi", "lexus", "porsche", "land_rover", "genesis", "infiniti", "volvo",
@@ -298,7 +298,10 @@ def recommend_market(profile: dict, mode: str, exclude: set | None = None, descr
     from . import llm
     known = ", ".join([*profile.get("nice", {}), *[f"{k}={v}" for k, v in profile.get("hard", {}).items()]])
     named = bool(profile.get("hard", {}).get("models"))
-    suggested = [] if named else (llm.suggest_models(description or profile.get("goal") or "", known) or [])   # модель названа — нейросеть не нужна
+    # Локальная 1.5B-модель не понимает смысл описания и выдаёт один и тот же
+    # список для разных запросов. Модели берём из каталога по профилю и тегам —
+    # это воспроизводимо и зависит от того, что действительно сказал клиент.
+    suggested = [] if named else []
     models = candidate_models(profile, 3, exclude, suggested)
     with ThreadPoolExecutor(len(models) or 1) as ex:
         found = [c for lst in ex.map(lambda m: _listings_for(m, profile, mode), models) for c in lst]

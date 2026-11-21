@@ -1,0 +1,79 @@
+/* Демо-вход: только эффекты самого демо.
+   Раскладка и цвета живут в app.css — здесь нет переопределений вёрстки. */
+
+.demo-spark { display: inline-block; animation: demo-spark 2.4s ease-in-out infinite; }
+@keyframes demo-spark { 50% { transform: rotate(180deg) scale(1.25); filter: drop-shadow(0 0 6px var(--accent)); } }
+
+.demo-cursor {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .55));
+  transition: left .36s cubic-bezier(.2, .8, .25, 1), top .36s cubic-bezier(.2, .8, .25, 1);
+  transform: translate(-3px, -3px);
+}
+.demo-cursor svg { width: 20px; height: 20px; fill: #fff; stroke: #0b0b0d; stroke-width: 1.4; }
+.demo-cursor.tap { animation: demo-tap .32s ease; }
+@keyframes demo-tap { 50% { transform: translate(-3px, -3px) scale(.72); } }
+
+.demo-focus {
+  position: relative !important;
+  z-index: 2;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 24px rgba(255, 74, 61, .22) !important;
+}
+
+.demo-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  vertical-align: -.16em;
+  margin-left: 1px;
+  background: var(--accent);
+  animation: demo-blink .7s step-end infinite;
+}
+@keyframes demo-blink { 50% { opacity: 0; } }
+
+#home-auth-submit.demo-press { animation: demo-press .55s cubic-bezier(.2, .8, .25, 1); }
+@keyframes demo-press {
+  0% { transform: scale(1); }
+  35% { transform: scale(.95); box-shadow: 0 0 0 0 rgba(255, 74, 61, .5); }
+  70% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(255, 74, 61, 0); }
+  100% { transform: scale(1); }
+}
+
+.demo-badge {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border: 1px solid rgba(255, 74, 61, .4);
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  animation: demo-badge-in .4s var(--ease) backwards;
+}
+.demo-badge i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  animation: demo-badge-pulse 1.1s ease-in-out infinite;
+}
+@keyframes demo-badge-in { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes demo-badge-pulse { 50% { opacity: .35; transform: scale(.7); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-cursor, .demo-spark, .demo-badge i { animation: none !important; transition: none !important; }
+}

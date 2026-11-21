@@ -3,7 +3,7 @@ import { MooseScene } from "./moose2d.js";
 import { MooseTest } from "./moose3d.js";
 
 const $ = (s) => document.querySelector(s);
-const state = { sid: null, question: null, rec: null, color: null, user: null, excluded: [] };
+const state = { sid: null, question: null, rec: null, color: null, user: null, excluded: [], guest: false };
 // token растёт при каждой смене экрана, run — при каждой новой анкете: устаревшие ответы сервера и нейросети выбрасываются
 const nav = { token: 0, run: 0 };
 let _sid = null;
@@ -71,6 +71,7 @@ async function guarded(fn) {
 
 // новый поиск начинается с чистого состояния: анкета, прошлая выдача и исключённые модели не тянутся из прошлого
 function resetSearch() {
+  for(const id of ['describe-clarify','describe-live','qa-thought'])$('#'+id).hidden=true;
   Object.assign(form, { sid: null, questions: new Map(), answers: new Map(), sent: new Set(), finishing: 0 });
   state.rec = null;
   state.excluded = [];
@@ -90,41 +91,116 @@ const refetchRec = () => state.rec?.source === "market"
   ? api("GET", `/sessions/${state.sid}/market?exclude=${encodeURIComponent((state.excluded || []).join(","))}`)
   : api("GET", `/sessions/${state.sid}/recommendation`);
 
-// 1. Режим
-document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => guarded(async () => {
-  if (!state.user) return startSearch();
-  const s = await api("POST", "/sessions", { mode: b.dataset.mode });
-  state.sid = s.session_id;
-  resetSearch();
-  if (state.user && !state.user.mode) refreshUser(); // выбор режима запомнен в аккаунте
-  show("screen-describe");
-  $("#describe-text").focus();
-})));
+// 1. Главная: форма описания и выбор уровня общения рядом.
+function selectedHomeMode(){return $('#home-levels .level-btn.active')?.dataset.mode || 'novice';}
+$('#home-levels').addEventListener('click',(e)=>{const b=e.target.closest('[data-mode]');if(!b)return;$('#home-levels').querySelectorAll('.level-btn').forEach(x=>x.classList.toggle('active',x===b));});
+async function ensureSession(mode){
+  const s=await api('POST','/sessions',{mode});
+  state.sid=s.session_id;resetSearch();return s;
+}
+async function startWithDescription(){
+  const text=$('#home-describe').value.trim();
+  if(!text){toast('Напишите хотя бы пару слов или нажмите «Не знаю»');return;}
+  if(!state.user){state.afterAuth=startWithDescription;return openAuth('register','Чтобы подобрать машину, войдите или создайте аккаунт');}
+  await ensureSession(selectedHomeMode());
+  await handleDescription(text,$('#start-btn'),$('#describe-clarify'),$('#describe-live'));
+}
+async function startBlind(){
+  if(!state.user){state.afterAuth=startBlind;return openAuth('register','Войдите, чтобы начать подбор');}
+  await ensureSession(selectedHomeMode());
+  await nextQuestion();
+}
+$('#start-btn').addEventListener('click',()=>guarded(startWithDescription));
+$('#home-skip').addEventListener('click',()=>guarded(startBlind));
+
+// Компактная форма входа/регистрации на главной.
+const homeAuthForm=$('#home-auth-form'),homeSeg=$('#home-auth-seg');
+let homeAuthKind='login';
+function setHomeAuth(kind){
+  homeAuthKind=kind;setSeg(homeSeg,kind==='login'?0:1);
+  homeSeg.querySelectorAll('[data-auth]').forEach(b=>b.classList.toggle('active',b.dataset.auth===kind));
+  homeAuthForm.querySelectorAll('.reg-only').forEach(el=>el.hidden=kind!=='register');
+  $('#home-auth-submit .btn-text').textContent=COPY[kind][2];
+  homeAuthForm.password.autocomplete=kind==='login'?'current-password':'new-password';
+  $('#home-auth-error').hidden=true;
+}
+homeSeg.addEventListener('click',(e)=>{const b=e.target.closest('[data-auth]');if(b)setHomeAuth(b.dataset.auth);});
+homeAuthForm.addEventListener('submit',(e)=>guarded(async()=>{
+  e.preventDefault();const f=new FormData(homeAuthForm),btn=$('#home-auth-submit'),err=$('#home-auth-error');
+  const body={email:f.get('email'),password:f.get('password')};if(homeAuthKind==='register')body.name=f.get('name');
+  err.hidden=true;btn.classList.add('loading');btn.disabled=true;
+  try{await Promise.all([api('POST',`/auth/${homeAuthKind}`,body),sleep(350)]);await refreshUser();
+    toast(homeAuthKind==='register'?'Аккаунт создан':'Вы вошли в аккаунт');
+    state.afterAuth=null;homeAuthForm.reset();
+  }catch(ex){err.textContent=ex.message;err.hidden=false;}finally{btn.classList.remove('loading');btn.disabled=false;}
+}));
+const demoCursor=()=>{let el=$('#demo-cursor');if(!el){el=document.createElement('div');el.id='demo-cursor';el.className='demo-cursor';el.setAttribute('aria-hidden','true');el.innerHTML='<svg viewBox="0 0 24 24"><path d="M3 2l7.6 18.2 2.3-7.1 7.1-2.3z"/></svg>';document.body.append(el);}return el;};
+const demoMove=async el=>{const c=demoCursor(),r=el.getBoundingClientRect();c.style.left=`${r.left+Math.min(60,r.width/3)}px`;c.style.top=`${r.top+r.height/2-4}px`;el.classList.add('demo-focus');await sleep(360);};
+const demoTap=async()=>{const c=demoCursor();c.classList.remove('tap');void c.offsetWidth;c.classList.add('tap');await sleep(160);};
+const demoType=async (input,text)=>{input.value='';input.focus();for(const ch of text){input.value+=ch;input.dispatchEvent(new Event('input',{bubbles:true}));await sleep(55);}};
+$('#home-demo').addEventListener('click',()=>guarded(async()=>{
+  if(state.demoRunning)return;state.demoRunning=true;
+  $('#home-auth-error').hidden=true;
+  const btn=$('#home-auth-submit'),inner=btn.querySelector('.btn-text'),label=inner.textContent;
+  const email=homeAuthForm.email,pw=homeAuthForm.password,badge=document.createElement('div');
+  badge.className='demo-badge';badge.innerHTML='<i></i> Демо-режим';$('#home-auth').prepend(badge);
+  try{
+    await demoMove(email);await demoType(email,'demo@autochoice.local');
+    pw.type='text';await demoMove(pw);await demoType(pw,'Demo1234');
+    await demoMove(btn);await demoTap();
+    inner.textContent='Вход в демо…';btn.disabled=true;btn.classList.add('demo-press');
+    await api('POST','/auth/demo');await refreshUser();
+    toast('Демо-вход выполнен — добро пожаловать!');
+    state.afterAuth=null;
+    if($('#home-describe').value.trim())await startWithDescription();
+  }catch(ex){const e=$('#home-auth-error');e.textContent=ex.message;e.hidden=false;}
+  finally{demoCursor().remove();badge.remove();document.querySelectorAll('.demo-focus').forEach(x=>x.classList.remove('demo-focus'));btn.classList.remove('demo-press');btn.disabled=false;inner.textContent=label;state.demoRunning=false;}
+}));
 
 // 2. Описание
-$("#hint-chips").addEventListener("click", (e) => {
-  if (!e.target.classList.contains("chip")) return;
-  const ta = $("#describe-text");
-  ta.value = ta.value ? `${ta.value.trim()}, ${e.target.textContent}` : e.target.textContent;
-});
-$("#describe-go").addEventListener("click", () => guarded(async () => {
-  const text = $("#describe-text").value.trim();
-  if (!text) return toast("Напишите хотя бы пару слов или нажмите «Не знаю»");
-  const btn = $("#describe-go"), label = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "Нейросеть анализирует запрос...";  // локальная модель думает несколько секунд
-  let r;
+async function liveApi(method, path, body, panel, current) {
+  const log = panel.querySelector('[role=log]');
+  log.replaceChildren(); panel.hidden = false;
+  const res = await fetch(`/api/v1${path}`, {method, headers: {'Accept':'application/x-ndjson','Content-Type':'application/json'}, body: body && JSON.stringify(body)});
+  if (!res.ok) throw new Error((await res.json()).error?.message || 'Ошибка сервера');
+  const reader = res.body.getReader(), decoder = new TextDecoder(); let pending = '';
   try {
-    r = await api("POST", `/sessions/${state.sid}/describe`, { text });
-  } finally {
-    btn.disabled = false;
-    btn.textContent = label;
-  }
-  state.color = r.profile.color;
-  state.goal = r.profile.goal || null;
+    while (true) {
+      const {done,value} = await reader.read(); if (!current()) { await reader.cancel(); return null; }
+      pending += decoder.decode(value, {stream:!done});
+      const lines = pending.split('\n'); pending = lines.pop();
+      for (const line of lines.filter(Boolean)) {
+        const event = JSON.parse(line);
+        if ('result' in event) return event.result;
+        if (event.stage) {const p=document.createElement('p');p.textContent=event.stage;log.append(p);}
+      }
+      if (done) throw new Error('Связь прервалась. Попробуйте ещё раз.');
+    }
+  } finally {reader.releaseLock();}
+}
+for (const chipsId of ["hint-chips", "describe-hint-chips"]) {
+  const box = document.getElementById(chipsId);
+  if (!box) continue;
+  box.addEventListener("click", (e) => {
+    if (!e.target.classList.contains("chip")) return;
+    const ta = chipsId === "hint-chips" ? $("#home-describe") : $("#describe-text");
+    if (!ta) return;
+    ta.value = ta.value ? `${ta.value.trim()}, ${e.target.textContent}` : e.target.textContent;
+  });
+}
+async function handleDescription(text,btn,clarify,live){
+  const inner=btn.querySelector('.btn-text')||btn,label=inner.textContent;
+  btn.disabled=true;inner.textContent='Нейросеть анализирует запрос...';
+  const token=nav.token;clarify.hidden=true;
+  let r;
+  try{r=await liveApi('POST',`/sessions/${state.sid}/describe`,{text},live,()=>nav.token===token);}
+  finally{btn.disabled=false;(btn.querySelector('.btn-text')||btn).textContent=label;}
+  if(!r||nav.token!==token)return;
+  state.color=r.profile.color;state.goal=r.profile.goal||null;
   await nextQuestion();
-}));
-$("#describe-skip").addEventListener("click", () => guarded(nextQuestion));
+}
+$("#describe-go")?.addEventListener("click",()=>guarded(()=>handleDescription($('#describe-text').value.trim(),$('#describe-go'),$('#describe-clarify'),$('#describe-live'))));
+$("#describe-skip")?.addEventListener("click",()=>guarded(nextQuestion));
 
 // 3. Анкета: вопросы формулирует нейросеть (как в «парсинке»), варианты ответов фиксированы
 // «Я понял так…»: пересказ желания нейросетью (если она установлена)
@@ -139,9 +215,15 @@ function showGoal() {
 const form = { sid: null, questions: new Map(), answers: new Map(), sent: new Set(), busy: false, timer: null, retry: "initial", finishing: 0, finishSeq: 0 };
 
 function qaStatus(hint = "") {
+  const status = $("#qa-status-text"), bar = $("#qa-bar");
+  if (state.clarify) {
+    if (status) status.textContent = `Не хватает данных: ${state.clarify}. Уточните сразу несколько пунктов.`;
+    if (bar) bar.style.width = '0';
+    return;
+  }
   const total = form.questions.size, done = [...form.questions.keys()].filter((k) => form.answers.has(k)).length;
-  $("#qa-status-text").textContent = hint || (total ? `Отвечено: ${done} из ${total}.` : "");
-  $("#qa-bar").style.width = total ? `${(done / total) * 100}%` : "0";
+  if (status) status.textContent = hint || (total ? `Отвечено: ${done} из ${total}.` : "");
+  if (bar) bar.style.width = total ? `${(done / total) * 100}%` : "0";
 }
 function qaLock(busy, hint = "") {
   form.busy = busy;
@@ -170,7 +252,7 @@ async function openForm() {
   await qaAsk("initial", run);
 }
 async function qaSend() {
-  const batch = [...form.answers.values()].filter((a) => !form.sent.has(a.slot));
+  const batch = [...form.questions.keys()].filter(k=>!form.sent.has(k)).map(slot=>form.answers.get(slot)||{slot,value:'any'});
   if (!batch.length) return;
   await api("POST", `/sessions/${state.sid}/answers`, { answers: batch });
   batch.forEach((a) => { form.sent.add(a.slot); $(`.qa-card[data-slot="${a.slot}"]`)?.setAttribute("disabled", ""); });
@@ -182,8 +264,16 @@ async function qaAsk(phase, run = nav.run) {
   qaLock(true, phase === "initial" ? "Ассистент составляет анкету..." : "Проверяю, нужны ли уточнения...");
   try {
     await qaSend();
-    const { questions } = await api("GET", `/sessions/${state.sid}/advisor?phase=${phase}`);
+    $('#qa-thought-text').textContent='';
+    const result=await liveApi('GET', `/sessions/${state.sid}/advisor?phase=${phase}`, undefined, $('#qa-thought'), ()=>run===nav.run);
+    if (!result) return;
+    const {questions,reasoning}=result;
+    state.clarify=questions.length===0 ? 'пополните описание машины' : questions[0].label;
     if (run !== nav.run) return;                  // клиент ушёл с анкеты или начал заново: этот ответ уже не нужен
+    if (reasoning) {
+      $("#qa-thought-text").textContent = reasoning;
+      $("#qa-thought").hidden = false;
+    }
     const fresh = questions.filter((q) => !form.questions.has(q.slot));
     if (!fresh.length) {                          // данных достаточно
       if (phase === "more") { qaLock(false); return toast("Больше уточнений не нужно — можно показывать машину"); }
@@ -201,7 +291,7 @@ async function qaAsk(phase, run = nav.run) {
   } catch (e) {
     if (run !== nav.run) return;
     form.retry = phase;
-    qaLock(false, "Не удалось получить вопросы. Ответы сохранены.");
+    qaLock(false, e.message || "Не удалось получить вопросы. Ответы сохранены.");
     $("#qa-retry").hidden = false;
   }
 }
@@ -212,7 +302,7 @@ async function qaFinish() {
   qaLock(true, "Подбираю машину...");
   try {
     await qaSend();
-    await showResult(api("GET", `/sessions/${state.sid}/market`));
+    await showResult(liveApi('GET', `/sessions/${state.sid}/market`, undefined, $('#qa-thought'), ()=>true), {stream:true});
   } finally {
     if (form.finishing === id) {
       form.finishing = 0;
@@ -222,14 +312,17 @@ async function qaFinish() {
 }
 function qaCard(q, n) {
   const name = `qa-${q.slot}`;
-  const row = (value, label, extra = "") => `<label class="qa-opt"><input type="radio" name="${name}" value="${value}"><span>${esc(label)}</span></label>${extra}`;
+  // Максимум 4 варианта вместе со строкой ввода: 3 готовых + «Свой вариант».
+  const opts = (q.options || []).filter(o=>o.value!=='any' && !/^(не важно|не знаю|без разницы)$/i.test(o.label||'')).slice(0, 3);
+  const row = (value, label) => `<label class="qa-opt"><input type="radio" name="${name}" value="${value}"><span>${esc(label)}</span></label>`;
   const el = document.createElement("fieldset");
   el.className = "qa-card";
   el.dataset.slot = q.slot;
+  el._opts = opts;
   el.style.setProperty("--i", n);
-  el.innerHTML = `<legend><span class="q-number">${String(n).padStart(2, "0")}</span>${esc(q.text)}</legend>
-    <div class="qa-opts">${q.options.map((o, i) => row(i, o.label)).join("")}${row("__own__", "Свой ответ")}${row("__skip__", "Не важно")}</div>
-    <input class="qa-own" maxlength="160" placeholder="Ваш вариант" aria-label="Свой ответ" hidden>
+  el.innerHTML = `<legend class="sr-only">${esc(q.text)}</legend>
+    <div class="qa-question"><span class="q-number">${String(n).padStart(2, "0")}</span><span class="qa-question-text">${esc(q.text)}</span></div>
+    <div class="qa-opts">${opts.map((o, i) => row(i, o.label)).join("")}<div class="qa-custom-row"><input type="radio" name="${name}" value="__own__" aria-label="Выбрать свой вариант"><input class="qa-own" maxlength="160" placeholder="Свой вариант" aria-label="Свой вариант"></div></div>
     <label class="qa-must"><input type="checkbox" role="switch" ${q.default_must ? "checked" : ""}><span class="sw" aria-hidden="true"></span>Обязательно</label>`;
   return el;
 }
@@ -239,19 +332,34 @@ function qaSave(q, answer) {
   qaMoreVisibility();
 }
 function qaRead(card) {
-  const q = form.questions.get(card.dataset.slot), radio = card.querySelector("input[type=radio]:checked");
-  if (!radio) return;
+  const q = form.questions.get(card.dataset.slot);
   const own = card.querySelector(".qa-own"), must = card.querySelector(".qa-must input");
-  own.hidden = radio.value !== "__own__";
-  must.disabled = radio.value === "__skip__";
-  if (radio.value === "__own__") {
-    if (own.value.trim()) qaSave(q, { custom_text: own.value.trim() });
-    else own.focus();
-  } else if (radio.value === "__skip__") qaSave(q, { value: "any" });
-  else qaSave(q, { value: q.options[+radio.value].value, must: must.checked });
+  const custom = own.value.trim();
+  const radio = card.querySelector("input[type=radio]:checked");
+  // Ничего не выбрано — это и есть «не важно», отдельной кнопки больше нет.
+  if (!radio || (radio.value==='__own__'&&!custom)) { qaSave(q, { value: "any" }); return; }
+  if(radio.value==='__own__'){qaSave(q,{custom_text:custom,must:must.checked});return;}
+  qaSave(q, { value: (card._opts || q.options)[+radio.value].value, must: must.checked });
 }
-$("#qa-list").addEventListener("change", (e) => { const c = e.target.closest(".qa-card"); if (c && !e.target.classList.contains("qa-own")) qaRead(c); });
-$("#qa-list").addEventListener("focusout", (e) => { if (e.target.classList.contains("qa-own") && e.target.value.trim()) qaRead(e.target.closest(".qa-card")); });
+// Повторный клик по выбранному варианту снимает выделение -> «не важно».
+// Браузер ставит checked раньше click, поэтому запоминаем состояние до нажатия.
+$("#qa-list").addEventListener("click", (e) => {
+  const radio=e.target;if(!radio.matches('input[type=radio]'))return;
+  const card=radio.closest('.qa-card'), own=card.querySelector('.qa-own');
+  if(card.dataset.choice===radio.value){radio.checked=false;delete card.dataset.choice;own.value='';}
+  else {card.dataset.choice=radio.value;if(radio.value==='__own__')own.focus();else own.value='';}
+  qaRead(card);
+});
+$("#qa-list").addEventListener("change", (e) => {
+  const c = e.target.closest(".qa-card");
+  if (c && !e.target.classList.contains("qa-own")) qaRead(c);
+});
+$("#qa-list").addEventListener("input", (e) => {
+  if (!e.target.classList.contains("qa-own")) return;
+  const card = e.target.closest(".qa-card");
+  const radio=card.querySelector('input[value="__own__"]');radio.checked=!!e.target.value.trim();card.dataset.choice=radio.checked?'__own__':'';
+  qaRead(card);
+});
 $("#qa-list").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.classList.contains("qa-own")) { e.preventDefault(); e.target.blur(); } });
 $("#qa-finish").addEventListener("click", () => guarded(qaFinish));
 $("#qa-more").addEventListener("click", () => guarded(() => qaAsk("more")));
@@ -265,7 +373,7 @@ const nextQuestion = openForm;   // прежнее имя: его вызываю
 
 // 4. Подбор: анимация, пока считается выдача и грузится 3D
 const LOADING = ["Нейросеть подбирает модели под ваш запрос...", "Ищем живые объявления на Drom и FRESH...", "Сверяем цены и характеристики...", "Читаем ваши пожелания...", "Отсеиваем то, что не подходит...", "Взвешиваем компромиссы...", "Ищем 3D-модель на Sketchfab...", "Выкатываем машину на улицу..."];
-async function showResult(promise, { instant = false } = {}) {
+async function showResult(promise, { instant = false, stream = false } = {}) {
   show("screen-loading");
   const mine = nav.token;                         // если клиент уйдёт с экрана загрузки, результат ему уже не показываем
   (async () => {  // «Я понял так…» на экране загрузки
@@ -644,6 +752,11 @@ const I = {
 const accName = (u) => u.name || u.email.split("@")[0];
 const setSeg = (seg, i) => seg.style.setProperty("--i", i);
 
+function syncHomeAuthVisibility(u){
+  const auth=$("#home-auth");if(!auth)return;
+  auth.hidden=!!u;
+  $("#home-flow")?.classList.toggle("authed",!!u);
+}
 async function refreshUser() {
   const { user: u } = await api("GET", "/me").catch(() => ({ user: null }));
   state.user = u;
@@ -653,72 +766,17 @@ async function refreshUser() {
     b.classList.toggle("authed", !!u);
   });
   $("#pick-hint").hidden = !u;
+  syncHomeAuthVisibility(u);
 }
 
-// --- вход и регистрация
-const authDialog = $("#auth-dialog"), authForm = $("#auth-form"), authSeg = $("#auth-seg");
-let authKind = "login";
-const COPY = {
-  login: ["С возвращением", "Войдите, чтобы сохранять машины и историю поиска", "Войти"],
-  register: ["Создайте аккаунт", "Сохраняйте понравившиеся машины и возвращайтесь к прошлым поискам", "Создать аккаунт"],
-};
-function setAuthKind(kind) {
-  authKind = kind;
-  setSeg(authSeg, kind === "login" ? 0 : 1);
-  authSeg.querySelectorAll("[data-auth]").forEach((b) => b.classList.toggle("active", b.dataset.auth === kind));
-  authDialog.querySelectorAll(".reg-only").forEach((el) => (el.hidden = kind !== "register"));
-  [$("#auth-title").textContent, $("#auth-sub").textContent, $("#auth-submit .btn-text").textContent] = COPY[kind];
-  authForm.password.autocomplete = kind === "login" ? "current-password" : "new-password";
-  $("#auth-error").hidden = true;
+/** Вход и регистрация живут в правой панели на главной. */
+function openAuth(kind="login",note=""){
+  const seg=$("#home-auth-seg");
+  const b=seg?.querySelector(`[data-auth=${kind}]`);
+  if(b)b.click();
+  if(note){const err=$("#home-auth-error");if(err){err.textContent=note;err.hidden=false;}}
+  $("#home-auth")?.scrollIntoView({block:"center"});
 }
-function openAuth(kind = "login", note = "") {
-  setAuthKind(kind);
-  if (note) $("#auth-sub").textContent = note;
-  authDialog.showModal();
-  authForm.email.focus();
-}
-authSeg.addEventListener("click", (e) => { const b = e.target.closest("[data-auth]"); if (b) setAuthKind(b.dataset.auth); });
-$("#auth-cancel").addEventListener("click", () => authDialog.close());
-authDialog.addEventListener("close", () => setTimeout(() => {
-  if (state.user) return;
-  state.afterAuth = null;
-  if (location.pathname.startsWith("/account")) history.replaceState({}, "", "/" + location.search);
-}, 0));
-authDialog.addEventListener("click", (e) => { if (e.target === authDialog) authDialog.close(); });
-$("#pw-eye").addEventListener("click", () => {
-  const f = authForm.password;
-  f.type = f.type === "password" ? "text" : "password";
-  $("#pw-eye").classList.toggle("on", f.type === "text");
-});
-authForm.password.addEventListener("input", () => {
-  const v = authForm.password.value;
-  const ok = { len: v.length >= 8, letter: /[A-Za-zА-Яа-яЁё]/.test(v), digit: /\d/.test(v) };
-  document.querySelectorAll("#pw-rules li").forEach((li) => li.classList.toggle("ok", ok[li.dataset.rule]));
-});
-authForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const f = new FormData(authForm), btn = $("#auth-submit"), err = $("#auth-error");
-  const body = { email: f.get("email"), password: f.get("password") };
-  if (authKind === "register") body.name = f.get("name");
-  err.hidden = true;
-  btn.classList.add("loading"); btn.disabled = true;
-  try {
-    await Promise.all([api("POST", `/auth/${authKind}`, body), sleep(450)]);
-    const next = state.afterAuth;  // запоминаем до закрытия окна: оно сбрасывает afterAuth
-    state.afterAuth = null;
-    authForm.reset();
-    authDialog.close();
-    await refreshUser();
-    toast(authKind === "register" ? "Аккаунт создан — добро пожаловать!" : "Вы вошли в аккаунт");
-    if (next) guarded(next);
-  } catch (ex) {
-    err.textContent = ex.message;
-    err.hidden = false;
-    err.style.animation = "none"; void err.offsetWidth; err.style.animation = "";
-  } finally {
-    btn.classList.remove("loading"); btn.disabled = false;
-  }
-});
 
 // --- кабинет
 async function showCar(car, { push = true } = {}) {
@@ -841,20 +899,7 @@ $("#hero-logout").addEventListener("click", () => guarded(logout));
 $("#acc-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) guarded(() => openAccount(b.dataset.tab)); });
 $("#acc-back").addEventListener("click", () => show("screen-mode"));
 document.querySelectorAll(".acc-btn").forEach((b) => b.addEventListener("click", () => (state.user ? guarded(() => openAccount("saved")) : openAuth("login"))));
-// Режим спрашиваем только при первом поиске: у кого он уже сохранён в аккаунте, сразу идёт к описанию
-async function startSearch() {
-  if (!state.user) {  // подбор доступен только с аккаунтом: после входа продолжаем с того же места
-    state.afterAuth = startSearch;
-    return openAuth("register", "Чтобы подобрать машину, войдите или создайте аккаунт");
-  }
-  if (!state.user.mode) return show("screen-pick");
-  const s = await api("POST", "/sessions", {});
-  state.sid = s.session_id;
-  resetSearch();
-  show("screen-describe");
-  $("#describe-text").focus();
-}
-$("#start-btn").addEventListener("click", () => guarded(startSearch));
+// Кнопки главной подключены выше: они поддерживают гостевой запуск.
 $("#pick-back").addEventListener("click", () => show("screen-mode"));
 
 // маршрутизатор: выбирает экран по адресу (при открытии ссылки и при «назад/вперёд»)

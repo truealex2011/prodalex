@@ -1,6 +1,9 @@
 import uuid
+import json
+from queue import Queue
+from threading import Thread
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, Response, current_app, jsonify, request, stream_with_context
 
 from . import advisor, engine, metrics, nlu
 from .catalog import catalog_version, fetch_cars
@@ -86,9 +89,8 @@ def _state(s: UserSession) -> dict:
 def create_session():
     from .auth import current_user  # импорт здесь: auth сам импортирует api
     user = current_user()
-    if user is None:
-        raise ApiError("auth_required", "Чтобы подобрать машину, войдите или создайте аккаунт", 401)
-    mode = (user.mode if user and user.mode else _body().get("mode", "novice"))
+    body = _body()
+    mode = (user.mode if user and user.mode else body.get("mode", "novice"))
     if mode not in ("novice", "expert"):
         raise ApiError("bad_mode", "Режим должен быть novice или expert")
     if user and not user.mode:  # первый поиск: запоминаем выбор в аккаунте
@@ -125,19 +127,65 @@ def patch_profile(sid):
     return jsonify(_state(s))
 
 
+def _inference(fn, *args):
+    """Run pure inference off-thread; only public stage labels cross into the response."""
+    from . import llm
+    events = Queue()
+    def work():
+        llm.progress.report = lambda message: events.put(('stage', message))
+        try:
+            events.put(('done', fn(*args)))
+        except Exception as exc:
+            events.put(('error', exc))
+        finally:
+            del llm.progress.report
+    Thread(target=work, daemon=True).start()
+    while True:
+        kind, value = events.get()
+        if kind == 'done':
+            return value
+        if kind == 'error':
+            raise value
+        yield value
+
+
+def _reply(steps):
+    def packets():
+        while True:
+            try:
+                yield {'stage': next(steps)}
+            except StopIteration as done:
+                yield {'result': done.value}
+                return
+    if request.accept_mimetypes.best != 'application/x-ndjson':
+        for packet in packets():
+            if 'result' in packet:
+                return jsonify(packet['result'])
+    def lines():
+        for packet in packets():
+            yield json.dumps(packet, ensure_ascii=False) + '\n'
+    return Response(stream_with_context(lines()), mimetype='application/x-ndjson',
+                    headers={'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no'})
+
+
 @bp.post("/sessions/<sid>/describe")
 def describe(sid):
     s, data = _session(sid), _body()
     text = str(data.get("text", "")).strip()
     if not text:
         raise ApiError("empty_text", "Опишите хотя бы парой слов, какая машина нужна")
-    delta, engine = nlu.parse_ex(text)
-    _save(s, merge(s.profile, delta))
-    _log(s, "describe", user_text=text[:1000], parsed=delta.model_dump(mode="json"),
-         nlu_engine=engine, profile_version=s.profile_version)
-    _funnel(s, "describe")
-    db.session.commit()
-    return jsonify(_state(s))
+    def steps():
+        yield 'Ищу условия в вашем описании.'
+        delta, engine = yield from _inference(nlu.parse_ex, text)
+        yield 'Сохраняю распознанные условия.'
+        if nlu.understood(delta):
+            _save(s, merge(s.profile, delta))
+        _log(s, 'describe', user_text=text[:1000], parsed=delta.model_dump(mode='json'),
+             nlu_engine=engine, profile_version=s.profile_version)
+        _funnel(s, 'describe')
+        db.session.commit()
+        return _state(s)
+    return _reply(steps())
 
 
 @bp.get("/sessions/<sid>/question")
@@ -158,11 +206,14 @@ def advisor_questions(sid):
     s = _session(sid)
     phase = "more" if request.args.get("phase") == "more" else "initial"
     skipped = bool(s.asked) and set(s.asked) <= set(s.profile.get("skipped", []))
-    res = advisor.questionnaire(s.profile, s.mode, s.asked, _cars(), _description(s), phase, skipped)
-    if phase == "initial" and res.get("ai") and not s.profile.get("hard", {}).get("models"):
-        from . import llm
-        llm.prefetch_suggest(_description(s), ", ".join(s.profile.get("nice", {})))     # подбор моделей — пока клиент отвечает на вопросы
-    return jsonify(res)
+    def steps():
+        yield 'Сверяю профиль с каталогом и предыдущими ответами.'
+        description = _description(s)
+        res = yield from _inference(advisor.questionnaire, s.profile, s.mode, s.asked, _cars(), description, phase, skipped)
+        # prefetch_suggest отключён: локальная модель предлагала один и тот же
+        # список для любых описаний. Модели выбираются из каталога по профилю.
+        return res
+    return _reply(steps())
 
 
 @bp.post("/sessions/<sid>/answers")
@@ -177,6 +228,9 @@ def answers(sid):
         custom = str(a.get("custom_text") or "").strip()[:300]
         if custom:
             delta, engine = nlu.parse_ex(custom)
+            if not nlu.understood(delta):
+                db.session.rollback()
+                raise ApiError('clarify_answer', f'Я не понял ответ «{custom[:80]}». Переформулируйте его или выберите готовый вариант.', 422)
             profile = merge(profile, delta)
             _log(s, "answer", slot=slot, user_text=custom, parsed=delta.model_dump(mode="json"), nlu_engine=engine)
         else:
@@ -200,6 +254,8 @@ def answer(sid):
     if data.get("custom_text"):  # «свой ответ» разбирается тем же парсером, что и описание
         custom = str(data["custom_text"])[:1000]
         delta, engine = nlu.parse_ex(custom)
+        if not nlu.understood(delta):
+            raise ApiError('clarify_answer', 'Я не понял, что вы имели в виду. Уточните ответ или выберите готовый вариант.', 422)
         parsed = delta.model_dump(mode="json")
         profile = merge(profile, delta)
     else:
@@ -241,6 +297,20 @@ def recommendation(sid):
     return jsonify(_recommendation(s))
 
 
+def _finish_market(s, res):
+    hard = s.profile.get("hard", {})
+    if not res and not engine.available():
+        return {**_recommendation(s), "source": "catalog", "notice": "Сервис объявлений сейчас недоступен — показан демо-каталог"}
+    if not res and (hard.get("models") or hard.get("brands")):
+        named = ", ".join(chips_named(s.profile))
+        return {"car": None, "alternatives": [], "uncertain": [], "empty": True, "counterfactuals": [], "source": "market",
+                "why_empty": [f"Сейчас нет подходящих объявлений: {named}. Уберите условие или измените бюджет, чтобы увидеть другие варианты."],
+                "profile_version": s.profile_version, "chips": chips(s.profile)}
+    if not res:
+        return {**_recommendation(s), "source": "catalog"}
+    return {**res, "profile_version": s.profile_version, "chips": chips(s.profile)}
+
+
 @bp.get("/sessions/<sid>/market")
 def market(sid):
     """Подбор по живым объявлениям (движок «парсинка»): модели под профиль -> объявления -> ранжирование.
@@ -248,22 +318,18 @@ def market(sid):
     s = _session(sid)
     _funnel(s, "result")
     exclude = {x for x in request.args.get("exclude", "").split(",") if x}
+    if request.accept_mimetypes.best == 'application/x-ndjson':
+        def steps():
+            yield 'Проверяю подходящие модели и живые объявления.'
+            result = yield from _inference(engine.recommend_market, s.profile, s.mode, exclude, _description(s))
+            return _finish_market(s, result)
+        return _reply(steps())
     try:
         res = engine.recommend_market(s.profile, s.mode, exclude, _description(s))
     except Exception:
         current_app.logger.exception("подбор по объявлениям")
         res = None
-    hard = s.profile.get("hard", {})
-    if not res and not engine.available():           # сервис объявлений не отвечает — это не то же самое, что «объявлений нет»
-        return jsonify({**_recommendation(s), "source": "catalog", "notice": "Сервис объявлений сейчас недоступен — показан демо-каталог"})
-    if not res and (hard.get("models") or hard.get("brands")):     # клиент назвал марку/модель: подменять другой нельзя
-        named = ", ".join(chips_named(s.profile))
-        return jsonify({"car": None, "alternatives": [], "uncertain": [], "empty": True, "counterfactuals": [], "source": "market",
-                        "why_empty": [f"Сейчас нет подходящих объявлений: {named}. Уберите условие (крестик у плашки ниже) или измените бюджет, чтобы увидеть другие варианты."],
-                        "profile_version": s.profile_version, "chips": chips(s.profile)})
-    if not res:
-        return jsonify({**_recommendation(s), "source": "catalog"})
-    return jsonify({**res, "profile_version": s.profile_version, "chips": chips(s.profile)})
+    return jsonify(_finish_market(s, res))
 
 
 def chips_named(profile: dict) -> list[str]:
