@@ -22,6 +22,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from . import brands, models_text, part_facts
+from . import config  # noqa: F401  (подхватывает .env раньше, чем читаются PARSER_URL, AUTOCHOICE_* и остальные переменные)
 from .recommender import explain, score
 
 FAST_CARDS = int(os.getenv("PARSER_FAST_CARDS", "4"))     # сколько объявлений с модели разбирать подробно: меньше — быстрее
@@ -49,9 +50,10 @@ BODY_CATS = {"sedan": r"sedan", "hatch": r"hatchback", "suv": r"sport utility|of
 NEGATIVE_FOR_PREMIUM = r"taxi|police|subcompact|supermini|kei car|cars of russia"
 
 
-@lru_cache(maxsize=1)
-def market_models() -> list[dict]:
-    """Модели, которые реально продаются (по снимку рынка движка), с их категориями."""
+SNAPSHOT = Path(__file__).resolve().parent.parent / "data" / "catalog" / "market_snapshot.json"
+
+
+def _read_market() -> list[dict]:
     cat = json.loads((PARSER_DIR / "catalog" / "models.json").read_text(encoding="utf-8"))["models"]
     counts = json.loads((PARSER_DIR / "catalog" / "market.json").read_text(encoding="utf-8"))["counts"]
     by_path = {m["path"]: m for m in cat}
@@ -62,6 +64,23 @@ def market_models() -> list[dict]:
         title = m["title"] if m else f"{BRAND_NAMES.get(brand, brand.replace('_', ' ').title())} {model.replace('_', ' ').replace('-', ' ').upper() if len(model) <= 5 else model.replace('_', ' ').replace('-', ' ').title()}"
         out.append({"path": path, "brand": brand, "title": title, "desc": (m["description"] if m else "").lower(), "count": n})
     return out
+
+
+@lru_cache(maxsize=1)
+def market_models() -> list[dict]:
+    """Модели, которые реально продаются (снимок рынка движка), с их категориями.
+    Берётся из папки движка; если её нет (сервер, CI, чужой компьютер) — из снимка data/catalog/market_snapshot.json."""
+    try:
+        return _read_market()
+    except (OSError, KeyError, ValueError):
+        return json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+
+
+def write_snapshot() -> int:
+    """Обновить снимок из папки движка: python -c "from app import engine; print(engine.write_snapshot())"."""
+    data = _read_market()
+    SNAPSHOT.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    return len(data)
 
 
 def _tokens(s: str) -> set:
@@ -161,6 +180,10 @@ def _post(path: str, payload: dict, timeout: int = 300) -> dict:
         return json.loads(r.read().decode("utf-8"))
 
 
+class SourcesBusy(Exception):
+    """Drom/Fresh временно отказывают (лимит запросов): это не «объявлений нет», а «попробуйте позже»."""
+
+
 def available() -> bool:
     try:
         with urllib.request.urlopen(PARSER_URL + "/health", timeout=3) as r:
@@ -184,7 +207,11 @@ def _listings_for(model: dict, profile: dict, mode: str) -> list[dict]:
     try:
         res = _post("/api/search", {"description": model["title"][:600], "mode": mode, "answers": answers, "asked": [], "phase": "initial"})
     except Exception:
+        model["_busy"] = True
         return []
+    src = res.get("sources") or []
+    if src and not any(s.get("ok") for s in src):      # все источники отказали (Drom ограничил запросы), а не «объявлений нет»
+        model["_busy"] = True
     return [dict(r, model=model) for r in res.get("results", [])]
 
 
@@ -204,6 +231,16 @@ COLOR_RU = {"бел": "white", "черн": "black", "чёрн": "black", "кра
 def _pick(table: dict, s: str):
     s = (s or "").lower()
     return next((v for k, v in table.items() if k in s), None)
+
+
+# Битые, «не на ходу», на запчасти и т. п.: в обычную выдачу не попадают. «Не битый» и «без ДТП» — нормальные.
+DAMAGED_TEXT = re.compile(r"(?<!не\s)\b(?:битый|битая|битое|битые)\b|не\s+на\s+ходу|после\s+дтп|после\s+аварии|аварийн\w+\s+(?:авто|автомобил)|"
+                          r"на\s+запчаст|на\s+разбор(?:ку)?\b|под\s+восстановлен|требует(?:ся)?\s+ремонт|не\s+заводится|не\s+едет", re.I)
+DAMAGED_RAW = re.compile(r"требуется ремонт или не на ходу|Особые отметки[^.]{0,60}не на ходу", re.I)      # отметка продавца на странице Drom
+
+
+def is_damaged(r: dict) -> bool:
+    return bool(DAMAGED_TEXT.search(f"{r.get('title') or ''} {r.get('description') or ''}") or DAMAGED_RAW.search(str(r.get("raw") or "")))
 
 
 def to_car(r: dict) -> dict:
@@ -233,7 +270,7 @@ def to_car(r: dict) -> dict:
         "model_path": path, "searched_for": model["title"], "asset": r.get("assetQuery") or {"name": title.lower(), "year": str(year or ""), "body": ""},
         "specs": {"clearance_mm": int(m["clearance"]) if m.get("clearance") else None, "length_mm": int(m["length"]) if m.get("length") else None,
                   "right_hand": "руль правый" in raw.lower(), "mileage_km": int(_num(f.get("mileage")) or 0) or None},
-        "facts": f, "description": (r.get("description") or "")[:300],
+        "facts": f, "description": (r.get("description") or "")[:300], "damaged": is_damaged(r),
     }
     spec = r.get("spec") or {}
     for k, v in part_facts.parse_spec(spec).items():       # таблица комплектации Drom: масса, разгон, бак, колея...
@@ -290,8 +327,39 @@ def hotspots(car: dict, f: dict) -> dict:
 
 
 # ───────────── подбор ─────────────
+def _relaxed(profile: dict) -> list[tuple[dict, str]]:
+    """Ослабленные запросы по очереди: (профиль, пояснение для клиента). Сначала снимаем самое «жёсткое» из названного."""
+    hard = profile.get("hard", {})
+    out = []
+    if hard.get("models"):
+        names = ", ".join(f"{brands.title_of(p.partition('/')[0])} {models_text.model_title(p)}" for p in hard["models"])
+        h = {k: v for k, v in hard.items() if k != "models"}
+        out.append(({**profile, "hard": h}, f"Точных совпадений по «{names}» не найдено. Показываю ближайший вариант — другая модель той же марки."))
+    if hard.get("brands"):
+        names = ", ".join(brands.title_of(b) for b in hard["brands"])
+        h = {k: v for k, v in hard.items() if k not in ("models", "brands")}
+        out.append(({**profile, "hard": h}, f"У марки {names} подходящих объявлений не найдено. Показываю ближайший вариант по остальным вашим условиям."))
+    if hard.get("budget_max") and not out:
+        h = {k: v for k, v in hard.items() if k != "budget_max"}
+        out.append(({**profile, "hard": h}, f"В бюджете до {hard['budget_max'] / 1e6:g} млн ₽ ничего не нашлось. Показываю ближайший вариант дороже."))
+    return out[:2]
+
+
 def recommend_market(profile: dict, mode: str, exclude: set | None = None, description: str = "") -> dict | None:
-    """Живые объявления под профиль. None — движок недоступен или ничего не нашёл (тогда работает каталог)."""
+    """Живые объявления под профиль. Нет точных совпадений — ближайший вариант с пометкой (note, exact=False).
+    None — движок недоступен или ничего не нашлось совсем."""
+    res = _recommend_market(profile, mode, exclude, description)
+    if res or not available():
+        return res
+    for relaxed, note in _relaxed(profile):
+        res = _recommend_market(relaxed, mode, exclude, description)
+        if res:
+            res["exact"], res["note"] = False, note
+            return res
+    return None
+
+
+def _recommend_market(profile: dict, mode: str, exclude: set | None = None, description: str = "") -> dict | None:
     if not available():
         return None
     t0 = time.time()
@@ -311,6 +379,12 @@ def recommend_market(profile: dict, mode: str, exclude: set | None = None, descr
             continue
         seen.add(r["link"])
         cars.append(to_car(r))
+    cars = [c for c in cars if not c["damaged"]]        # битые и «не на ходу» не советуем
+    for path in {c["model_path"] for c in cars}:        # цена в разы ниже обычной для модели — почти всегда битая или «на запчасти»
+        group = sorted(c["price"] for c in cars if c["model_path"] == path)
+        if len(group) >= 4:
+            median = group[len(group) // 2]
+            cars = [c for c in cars if c["model_path"] != path or c["price"] >= 0.4 * median]
     hard = profile.get("hard", {})
     if hard.get("brands"):                              # Drom может подмешать другие марки — убираем
         cars = [c for c in cars if brands.slug_of(c["title"]) in hard["brands"]]
@@ -321,6 +395,8 @@ def recommend_market(profile: dict, mode: str, exclude: set | None = None, descr
     if hard.get("transmission"):
         cars = [c for c in cars if c["transmission"] in (None, hard["transmission"])]
     if not cars:
+        if models and all(m.get("_busy") for m in models):
+            raise SourcesBusy("источники объявлений временно ограничили запросы")
         return None
     ranked = sorted(((score(c, profile, cars)[0], c) for c in cars), key=lambda x: (-x[0], -(x[1]["year"] or 0)))
     best_s, best = ranked[0]
@@ -337,7 +413,7 @@ def recommend_market(profile: dict, mode: str, exclude: set | None = None, descr
                              "diff": f"{c['price']:,} ₽".replace(",", " ") + (" · другая модель" if c["model_path"] not in used else ""), "car": c})
         used.add(c["model_path"])
     enrich(best)                                           # масса и размеры из Википедии, если Drom их не дал (только для показанной машины)
-    return {"car": best, "score": best_s, **explain(best, parts, profile), "alternatives": alternatives, "uncertain": [],
+    return {"car": best, "score": best_s, "exact": True, "note": None, **explain(best, parts, profile), "alternatives": alternatives, "uncertain": [],
             "empty": False, "source": "market", "models": [m["title"] for m in models], "suggested": suggested, "collected": len(cars), "seconds": round(time.time() - t0)}
 
 

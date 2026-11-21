@@ -27,7 +27,7 @@ DISCLAIMER = ("Реальные данные — результаты профе
 
 
 def _cg_height(car: dict, s: dict) -> float:
-    return CG_BASE.get(car["body"], 0.58) + (s["clearance_mm"] - 160) * 0.0008
+    return CG_BASE.get(car["body"], 0.58) + ((s.get("clearance_mm") or 160) - 160) * 0.0008
 
 
 def model_swerve_limit(car: dict) -> dict:

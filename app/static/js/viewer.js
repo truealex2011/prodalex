@@ -371,9 +371,10 @@ export class CarViewer {
     this.paint(color);
     this.carRoot.add(this.car);
     this.measure();
-    // шаги салона — только если салон в модели есть и в нём что-то распознано
+    // В салон можно зайти всегда: «Место водителя» есть у любой модели (камера по рулю/креслу или по пропорциям машины).
+    // Шаг «Управление» — только если нашлись рычаг, ручник, консоль или педали.
     const hasCabin = (s) => s.parts.some((id) => this.parts.get(id)?.group === "interior");
-    TOUR.splice(0, TOUR.length, ...ALL_TOUR.filter((s) => !s.interior || hasCabin(s)));
+    TOUR.splice(0, TOUR.length, ...ALL_TOUR.filter((s) => !s.interior || s.id === "cabin" || hasCabin(s)));
     this.poses = TOUR.map((s) => ({ ...s.pose(this), hfov: s.hfov, interior: !!s.interior }));
   }
 
@@ -509,6 +510,17 @@ export class CarViewer {
 
   // ---------- геометрия машины для камеры ----------
   boxOfPart(id) {
+    // Габариты берём из разметки (parts.json): у разбитой модели все детали делят один буфер вершин, и по самим мешам
+    // рамка получается размером со всю исходную геометрию, а не с деталь.
+    const bb = this.parts.get(id)?.bbox;
+    if (bb && this.modelRoot) {
+      this.modelRoot.updateWorldMatrix(true, false);
+      const box = new THREE.Box3();
+      for (const x of [bb.min[0], bb.max[0]]) for (const y of [bb.min[1], bb.max[1]]) for (const z of [bb.min[2], bb.max[2]]) {
+        box.expandByPoint(this.modelRoot.localToWorld(new THREE.Vector3(x, y, z)));
+      }
+      return box;
+    }
     const meshes = this.partMeshes.get(id);
     if (!meshes?.length) return null;
     const b = new THREE.Box3();
@@ -548,34 +560,41 @@ export class CarViewer {
     return { pos, target };
   }
 
-  /** Глаза водителя: с переднего сиденья, как сидит человек. Опора — руль (надёжнее всего), затем кресло, затем пропорции машины. */
+  /** Глаза водителя: с переднего сиденья, как сидит человек. Опора — руль, затем кресло; любое найденное положение проверяется
+   *  по пропорциям машины (голова водителя — примерно 36–60% длины от носа), иначе берётся типичное место водителя. */
   driverEye() {
-    const H = this.box.max.y - this.box.min.y;
+    const size = this.box.getSize(new THREE.Vector3());
+    const L = Math.abs(size.x * this.front.x) + Math.abs(size.z * this.front.z);
+    const W = Math.abs(size.x * this.left.x) + Math.abs(size.z * this.left.z);
+    const H = size.y;
+    const fromNose = (p) => (L / 2 - p.clone().sub(this.center).dot(this.front)) / L;
+    const sane = (p) => p && fromNose(p) > 0.36 && fromNose(p) < 0.6;
+    const small = (b) => b && ["x", "y", "z"].every((k) => b.max[k] - b.min[k] < 1.2);   // не больше метра по каждой оси
+    let eye = null;
     const wheel = this.boxOfPart("steering_wheel");
-    if (wheel) {                                   // голова ≈ 0,55 м позади центра руля и на 0,28 м выше
-      const eye = wheel.getCenter(new THREE.Vector3()).addScaledVector(this.front, -0.55);
-      eye.y = Math.min(wheel.getCenter(new THREE.Vector3()).y + 0.28, this.box.min.y + H * 0.84);
-      return eye;
+    if (small(wheel)) {                              // голова ≈ 0,55 м позади центра руля и на 0,28 м выше
+      const c = wheel.getCenter(new THREE.Vector3());
+      const p = c.clone().addScaledVector(this.front, -0.55);
+      p.y = c.y + 0.28;
+      if (sane(p)) eye = p;
     }
     const seat = this.boxOfPart("seat_driver");
-    if (seat) {                                    // над подушкой, у спинки — там, где голова, а не в подголовнике
+    if (!eye && seat && small(seat)) {               // над подушкой, у спинки — там, где голова, а не в подголовнике
       const c = seat.getCenter(new THREE.Vector3());
-      const s = seat.getSize(new THREE.Vector3());
-      const depth = Math.abs(s.x * this.front.x) + Math.abs(s.z * this.front.z);
-      const eye = c.addScaledVector(this.front, depth * 0.05);
-      eye.y = seat.min.y + Math.min(s.y * 0.85, 0.72);
-      return eye;
+      const sz = seat.getSize(new THREE.Vector3());
+      const depth = Math.abs(sz.x * this.front.x) + Math.abs(sz.z * this.front.z);
+      const p = c.clone().addScaledVector(this.front, depth * 0.05);
+      p.y = seat.min.y + Math.min(sz.y * 0.85, 0.72);
+      if (sane(p)) eye = p;
     }
-    const fl = this.boxOfPart("wheel_front_left"), rl = this.boxOfPart("wheel_rear_left");
-    const e = this.center.clone();
-    if (fl && rl) {                                 // ≈ 55% колёсной базы от передней оси
-      const p = fl.getCenter(new THREE.Vector3()).lerp(rl.getCenter(new THREE.Vector3()), 0.55);
-      e.addScaledVector(this.front, p.sub(this.center).dot(this.front));
+    if (!eye) {                                      // ничего надёжного не нашлось: типичное место водителя
+      eye = this.center.clone().addScaledVector(this.front, L / 2 - 0.47 * L);
+      eye.y = this.box.min.y + H * 0.72;
     }
-    const size = this.box.getSize(new THREE.Vector3());
-    e.addScaledVector(this.left, (Math.abs(size.x * this.left.x) + Math.abs(size.z * this.left.z)) * 0.2);
-    e.y = this.box.min.y + H * 0.76;
-    return e;
+    const lateral = eye.clone().sub(this.center).dot(this.left);
+    if (lateral < 0.1 * W || lateral > 0.32 * W) eye.addScaledVector(this.left, 0.2 * W - lateral);   // водитель слева, а не по центру или у двери
+    eye.y = Math.min(Math.max(eye.y, this.box.min.y + 0.55 * H), this.box.min.y + 0.82 * H);
+    return eye;
   }
 
   /** точка взгляда из салона: вперёд, чуть вправо (к центру) и вниз */

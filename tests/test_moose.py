@@ -13,8 +13,13 @@ with open(os.path.join(ROOT, "data", "catalog", "cars.json"), encoding="utf-8") 
     CARS = {c["id"]: c for c in json.load(f)}
 
 
+def _full():
+    """Машины с характеристиками для теста; импортированные модели без данных (цена, клиренс…) в проверках не участвуют."""
+    return [c for c in CARS.values() if (c.get("specs") or {}).get("clearance_mm")]
+
+
 def test_every_car_has_result_on_slider_range():
-    for car in CARS.values():
+    for car in _full():
         for v in range(30, 95, 5):
             r = moose_test(car, v)
             assert r["swerve"]["verdict"] in ("pass", "limit", "fail")
@@ -46,7 +51,7 @@ def test_reproducible():
 
 def test_faster_is_never_easier():
     order = {"pass": 0, "limit": 1, "fail": 2}
-    for car in CARS.values():
+    for car in _full():
         for a, b in ((30, 50), (50, 60), (60, 90)):
             assert order[swerve(car, b)["verdict"]] >= order[swerve(car, a)["verdict"]]
             assert collision(car, b)["risk"] >= collision(car, a)["risk"]

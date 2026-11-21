@@ -54,6 +54,15 @@ def _body_group(text: str):
     return next((k for k, words in BODIES.items() if any(f" {normal(w)} " in padded for w in words)), None)
 
 
+# Одна и та же машина в разных странах называется по-разному: на Sketchfab её ищут под мировым названием
+ALIASES = {
+    "hyundai solaris": ["Hyundai Accent"], "kia rio": ["Kia K2"], "hyundai elantra": ["Hyundai Avante"], "hyundai creta": ["Hyundai ix25"],
+    "renault logan": ["Dacia Logan"], "renault sandero": ["Dacia Sandero"], "renault duster": ["Dacia Duster"],
+    "mitsubishi asx": ["Mitsubishi Outlander Sport"], "nissan qashqai": ["Nissan Dualis"], "toyota land cruiser prado": ["Toyota Land Cruiser Prado 150"],
+    "skoda rapid": ["Skoda Rapid Spaceback"], "chevrolet cruze": ["Holden Cruze"], "toyota rav4": ["Toyota RAV4"],
+}
+
+
 def names_for(car: dict) -> list[str]:
     """Названия для поиска: полное («Kia Sportage») и сокращённое без хвоста («Tiggo 7 Pro Max» → «Tiggo 7»)."""
     brand = TRANSLIT.get(car["brand"].upper(), car["brand"])
@@ -62,6 +71,7 @@ def names_for(car: dict) -> list[str]:
     words = model.split()
     if len(words) > 1:
         out.append(f"{brand} {' '.join(words[:-1])}")
+    out += ALIASES.get(normal(out[0]), [])
     return list(dict.fromkeys(out))
 
 
@@ -81,7 +91,7 @@ def best_model(candidates: list[dict], name: str, year=None, body=None):
         year_match = bool(year and (year in years or (rng and int(rng[1]) <= int(year) <= int(rng[2]))))
         if year and not year_match and not rng and years:
             year_match = any(abs(y - year) <= 3 for y in years)
-        if year and years and not year_match:
+        if year and years and not year_match and min(abs(y - int(year)) for y in years) > 6:
             continue
         cand_body = _body_group(suffix)
         if target and cand_body and target != cand_body:
@@ -344,13 +354,30 @@ def download_glb(uid: str, mirror_path: str | None, dest: Path, direct: bool = F
     return len(data)
 
 
-BAD_SOURCE = re.compile(r"(?i)(scan|photogramm|realitycapture|polycam|meshroom|wreck|rust|abandon|destroyed|crash|damaged|burnt|junk|^\s*\d{2,4}\s*:)")
+BAD_SOURCE = re.compile(r"(?i)(scan|photogramm|realitycapture|polycam|meshroom|wreck|rust|abandon|destroyed|crash|damaged|burnt|junk|^\s*\d{2,4}\s*:|[68]x[68]|monster|lifted|drift|rally|police|taxi|ambulance|widebody|tuned|tuning|custom|kit\b)")
 
 
 def good_quality(m: dict) -> bool:
     """Отсекает модели, которые выглядят плохо: фотосканы, разбитые/ржавые машины, слишком грубая геометрия."""
     name = m.get("name") or ""
-    return not BAD_SOURCE.search(name) and not re.search(r"(low ?poly|psx|stylized|cartoon|toy|minecraft|lego|roblox)", normal(name)) and (m.get("faceCount") or 0) >= 20_000
+    return not BAD_SOURCE.search(name) and not re.search(r"\b(low ?poly|psx|stylized|cartoon|toy|minecraft|lego|roblox)\b", normal(name)) and (m.get("faceCount") or 0) >= 20_000
+
+
+ERA_WORDS = re.compile(r"\b(?:19\d0s|[5-9]0s|classic|vintage|retro|antique|old)\b", re.I)
+# поколения, которые точно современные: BMW F/G, Mercedes W2xx/X2xx, Audi B8/B9/C7/C8, VW Mk7/Mk8, Kia/Hyundai K5/DN8
+MODERN_GEN = re.compile(r"\b(?:w2\d\d|x2\d\d|[fg][0-4]\d|b[89]|c[78]|mk[78]|k5|dn8|dl3)\b", re.I)
+
+
+def era_ok(m: dict, year) -> bool:
+    """Подходит ли замена по возрасту: в названии есть год в пределах 12 лет от года объявления или известное современное поколение.
+    Без таких признаков («Toyota Corolla (KE80)», «crown 90s») замену не берём."""
+    name = m.get("name") or ""
+    if ERA_WORDS.search(name):
+        return False
+    ys = [int(y) for y in re.findall(r"(?:19|20)\d{2}", name)]
+    if ys:
+        return any((year or 2020) - 12 <= y <= (year or 2020) + 3 for y in ys)
+    return bool(MODERN_GEN.search(name))
 
 
 def find_and_download(car: dict, out_dir: Path, cache_dir: Path, allow_nc: bool = True, local_pool: list[dict] | None = None) -> dict | None:
@@ -394,8 +421,7 @@ def find_and_download(car: dict, out_dir: Path, cache_dir: Path, allow_nc: bool 
             have = {}
         pool = [m for m in pool if good_quality(m)]
         if car.get("fallback"):           # замена другой моделью: только современная и заметно проработанная
-            old = lambda m: any(int(y) < (year or 2020) - 8 for y in re.findall(r"(?:19|20)\d{2}", m.get("name") or ""))
-            pool = [m for m in pool if not old(m) and (m.get("likeCount") or 0) >= 10 and (m.get("faceCount") or 0) >= 60_000]
+            pool = [m for m in pool if era_ok(m, year) and (m.get("likeCount") or 0) >= 10 and (m.get("faceCount") or 0) >= 60_000]
         while pool:
             sel = best_model(pool, name, year if not car.get("fallback") else None, car.get("body"))
             if not sel:
@@ -406,6 +432,10 @@ def find_and_download(car: dict, out_dir: Path, cache_dir: Path, allow_nc: bool 
                 last_error = e
                 break
             lic = detail.get("license") or {}
+            full = {"name": detail.get("name") or "", "faceCount": detail.get("faceCount") or sel.get("faceCount")}
+            if not good_quality(full) or (car.get("fallback") and not era_ok(full, year)):     # в поиске название короче, чем на странице модели («… Low Poly», «(1980)»)
+                pool = [m for m in pool if m["uid"] != sel["uid"]]
+                continue
             if detail.get("isDownloadable") and re.match(r"https?://creativecommons\.org/(?:licenses|publicdomain)/", lic.get("url") or ""):
                 dest = out_dir / f"{sel['uid']}.glb"
                 try:

@@ -1,0 +1,76 @@
+{
+  "allowed": [
+    {
+      "id": 22,
+      "title": "Nissan Cefiro A31",
+      "model_key": "models/project_539b2257.glb",
+      "parts_key": "models/project_539b2257.json"
+    },
+    {
+      "id": 23,
+      "title": "LADA 2107",
+      "model_key": "models/project_31201f80.glb",
+      "parts_key": "models/project_31201f80.json"
+    },
+    {
+      "id": 24,
+      "title": "BMW 3 Series touring (E46) 2001",
+      "model_key": "models/project_47833031.glb",
+      "parts_key": "models/project_47833031.json"
+    },
+    {
+      "id": 25,
+      "title": "toyota crown 2025",
+      "model_key": "models/project_9f48fc0a.glb",
+      "parts_key": "models/project_9f48fc0a.json"
+    },
+    {
+      "id": 26,
+      "title": "Kia Sportage",
+      "model_key": "models/project_98a84407.glb",
+      "parts_key": "models/project_98a84407.json"
+    }
+  ],
+  "not_published": [
+    {
+      "title": "Lada (VAZ) 2110",
+      "uid": "6622502050b548ef85796886f319dc99",
+      "license_class": "blocked"
+    },
+    {
+      "title": "Toyota bZ4X",
+      "uid": "e10068b2511b4ed7b724a8d87a362727",
+      "license_class": "blocked"
+    },
+    {
+      "title": "2024 Hyundai Elantra N",
+      "uid": "4ba1b1b0eb844e318cc708ada1f2f51f",
+      "license_class": "nc"
+    },
+    {
+      "title": "2020 Hyundai ix25 - 2022 Hyundai Creta",
+      "uid": "fa88bbdbe0df406b8eab167b9591d2f2",
+      "license_class": "nc"
+    },
+    {
+      "title": "2021 Hyundai Mistra 270T",
+      "uid": "046b825f3cd64559a3c1a5430b4fe105",
+      "license_class": "nc"
+    },
+    {
+      "title": "Nissan 350Z",
+      "uid": "05e7604a0f4643ab87c141e244813e9a",
+      "license_class": "nc"
+    },
+    {
+      "title": "2023 Chery Arrizo 8 290T",
+      "uid": "e6b69aa7329347f4bcd431d13b7dc915",
+      "license_class": "nc"
+    },
+    {
+      "title": "2023 Chery Omoda 5 290T",
+      "uid": "d9ff826c2bf14d81a4fa3c9b6b707376",
+      "license_class": "nc"
+    }
+  ]
+}

@@ -434,8 +434,10 @@ const gallery = {
   render() {
     const p = this.items[this.i];
     const img = $("#photo-main");
+    img.onload = fitPhoto;
     img.src = p.url;
     img.alt = p.title || "";
+    if (img.complete) fitPhoto();
     $("#photo-stage").style.setProperty("--bg-img", `url("${p.url}")`);
     $("#photo-credit").innerHTML = `${esc(p.credit)}${p.page ? ` · <a href="${esc(p.page)}" target="_blank" rel="noopener">источник ↗</a>` : ""}`;
     document.querySelectorAll("#photo-thumbs button").forEach((b, k) => b.classList.toggle("on", k === this.i));
@@ -447,14 +449,109 @@ const gallery = {
     $("#photo-stage").hidden = !this.active;
     $("#btn-photos").textContent = this.active ? "Вернуться к 3D" : "Фото машины";
     applyTrack();
+    if (!this.active) zoomClose();
+    requestAnimationFrame(fitPhoto);
   },
   go(d) { this.i = (this.i + d + this.items.length) % this.items.length; this.render(); },
 };
 $("#btn-photos").addEventListener("click", () => gallery.toggle());
+
+// Фото целиком, без полос: размер считаем по пропорциям снимка и свободному месту; вокруг — размытое то же фото
+function fitPhoto() {
+  const img = $("#photo-main"), st = $("#photo-stage");
+  if (!img.naturalWidth || st.hidden) return;
+  const cs = getComputedStyle(st);
+  const aw = st.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const ah = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (($("#photo-credit").offsetHeight || 30) + 10);
+  const k = Math.min(aw / img.naturalWidth, ah / img.naturalHeight);
+  img.style.width = `${Math.max(1, Math.round(img.naturalWidth * k))}px`;
+  img.style.height = `${Math.max(1, Math.round(img.naturalHeight * k))}px`;
+}
+// Лупа: фото на всё окно; колесо или +/− — приближение, клик — 1× ↔ 2,5×, перетаскивание — сдвиг, ←/→ — соседние фото, Esc — закрыть
+const zoom = { k: 1, x: 0, y: 0, drag: null, moved: false };
+const clampN = (v, a, b) => Math.min(b, Math.max(a, v));
+function zoomApply() {
+  const img = $("#zoom-img");
+  const mx = Math.max(0, (img.offsetWidth * zoom.k - innerWidth) / 2), my = Math.max(0, (img.offsetHeight * zoom.k - innerHeight) / 2);
+  zoom.x = clampN(zoom.x, -mx, mx);
+  zoom.y = clampN(zoom.y, -my, my);
+  img.style.transform = `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.k})`;
+  $("#zoom").classList.toggle("zoomed", zoom.k > 1.01);
+}
+function zoomFit() {                                  // «вписать в окно»: самая большая картинка, которая целиком влезает
+  const img = $("#zoom-img");
+  if (!img.naturalWidth) return;
+  const f = Math.min(innerWidth / img.naturalWidth, innerHeight / img.naturalHeight);
+  img.style.width = `${Math.round(img.naturalWidth * f)}px`;
+  img.style.height = `${Math.round(img.naturalHeight * f)}px`;
+  zoomApply();
+}
+function zoomAt(k, cx, cy) {                          // приближаем так, чтобы точка под курсором осталась на месте
+  k = clampN(k, 1, 6);
+  const px = (cx - innerWidth / 2 - zoom.x) / zoom.k, py = (cy - innerHeight / 2 - zoom.y) / zoom.k;
+  zoom.k = k;
+  zoom.x = k === 1 ? 0 : cx - innerWidth / 2 - px * k;
+  zoom.y = k === 1 ? 0 : cy - innerHeight / 2 - py * k;
+  zoomApply();
+}
+function zoomLoad() {
+  const p = gallery.items[gallery.i], img = $("#zoom-img");
+  Object.assign(zoom, { k: 1, x: 0, y: 0 });
+  img.onload = zoomFit;
+  img.src = p.url;
+  $("#zoom").style.setProperty("--bg-img", `url("${p.url}")`);
+  $("#zoom-count").textContent = `${gallery.i + 1} / ${gallery.items.length}`;
+  $("#zoom-prev").hidden = $("#zoom-next").hidden = gallery.items.length < 2;
+  if (img.complete) zoomFit();
+}
+function zoomOpen() {
+  if (!gallery.items.length) return;
+  $("#zoom").hidden = false;
+  document.documentElement.style.overflow = "hidden";
+  zoomLoad();
+}
+function zoomClose() {
+  $("#zoom").hidden = true;
+  document.documentElement.style.overflow = "";
+}
+const zoomGo = (d) => { gallery.go(d); zoomLoad(); };
+$("#photo-fs").addEventListener("click", zoomOpen);
+$("#photo-main").addEventListener("click", zoomOpen);
+$("#zoom-close").addEventListener("click", zoomClose);
+$("#zoom-prev").addEventListener("click", () => zoomGo(-1));
+$("#zoom-next").addEventListener("click", () => zoomGo(1));
+$("#zoom").addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(zoom.k * (e.deltaY < 0 ? 1.2 : 1 / 1.2), e.clientX, e.clientY); }, { passive: false });
+$("#zoom").addEventListener("click", (e) => { if (e.target.id === "zoom") zoomClose(); });   // клик мимо фото закрывает
+const zoomImg = $("#zoom-img");
+zoomImg.addEventListener("pointerdown", (e) => { zoom.drag = { x: e.clientX, y: e.clientY, ox: zoom.x, oy: zoom.y }; zoom.moved = false; zoomImg.setPointerCapture(e.pointerId); });
+zoomImg.addEventListener("pointermove", (e) => {
+  if (!zoom.drag) return;
+  const dx = e.clientX - zoom.drag.x, dy = e.clientY - zoom.drag.y;
+  if (Math.abs(dx) + Math.abs(dy) > 4) zoom.moved = true;
+  if (zoom.k > 1 && zoom.moved) { zoom.x = zoom.drag.ox + dx; zoom.y = zoom.drag.oy + dy; zoomApply(); }
+});
+zoomImg.addEventListener("pointerup", (e) => {
+  const was = zoom.drag;
+  zoom.drag = null;
+  if (was && !zoom.moved) zoomAt(zoom.k > 1.01 ? 1 : 2.5, e.clientX, e.clientY);      // клик без сдвига: приблизить / вернуть
+});
+addEventListener("resize", () => { if (!$("#zoom").hidden) zoomFit(); });
+addEventListener("keydown", (e) => {
+  const open = !$("#zoom").hidden;
+  if (open) {
+    if (e.key === "Escape") zoomClose();
+    else if (e.key === "ArrowLeft") zoomGo(-1);
+    else if (e.key === "ArrowRight") zoomGo(1);
+    else if (e.key === "+" || e.key === "=") zoomAt(zoom.k * 1.3, innerWidth / 2, innerHeight / 2);
+    else if (e.key === "-") zoomAt(zoom.k / 1.3, innerWidth / 2, innerHeight / 2);
+    return;
+  }
+  if (gallery.active && !$("#stage").hidden && !e.target.closest("input, textarea") && (e.key === "f" || e.key === "F" || e.key === "а" || e.key === "А")) zoomOpen();
+});
 $("#photo-prev").addEventListener("click", () => gallery.go(-1));
 $("#photo-next").addEventListener("click", () => gallery.go(1));
 $("#photo-thumbs").addEventListener("click", (e) => { const b = e.target.closest("[data-k]"); if (b) { gallery.i = +b.dataset.k; gallery.render(); } });
-addEventListener("keydown", (e) => { if (gallery.active && !$("#stage").hidden && !$("#sheet").classList.contains("open")) { if (e.key === "ArrowLeft") gallery.go(-1); if (e.key === "ArrowRight") gallery.go(1); } });
+addEventListener("keydown", (e) => { if (gallery.active && !$("#stage").hidden && $("#zoom").hidden && !$("#sheet").classList.contains("open")) { if (e.key === "ArrowLeft") gallery.go(-1); if (e.key === "ArrowRight") gallery.go(1); } });
 
 /** Готовит машину к показу: берёт файл 3D-модели (если своей нет — ищет на Sketchfab и скачивает) или фото. */
 async function prepareCar(car, color) {
@@ -463,7 +560,7 @@ async function prepareCar(car, color) {
     const a = car.asset || {};
     const q = new URLSearchParams({ name: car.title, year: a.year || car.year || "", body: car.body || "", length: car.specs?.length_mm || "" });
     const m = await api("GET", `/model3d?${q}`).catch(() => ({ kind: "none" }));
-    if (m.kind === "model") car = { ...car, model_url: m.url, parts_url: m.parts_url, model_credit: (m.similar ? `похожая модель (${m.similar}) — точной 3D этой машины нет в открытом доступе; ` : "") + m.credit, specs: { ...car.specs, measured: m.similar ? null : m.measured } };
+    if (m.kind === "model") car = { ...car, model_url: m.url, parts_url: m.parts_url, model_credit: (m.similar ? `похожая модель (${m.similar}) — точной 3D этой машины нет в открытом доступе; ` : "") + m.credit, model_warning: m.warning, specs: { ...car.specs, measured: m.similar ? null : m.measured } };
     await viewer.prepare(car, color);
     const photos = (car.images || []).filter((u) => !/ttn|gen272/.test(u)).slice(0, 8);
     gallery.set((photos.length ? photos : [car.image_url].filter(Boolean)).map((u) => ({ url: u, credit: `Фото из объявления (${car.source || "Drom"})`, page: car.listing_url })));
@@ -474,7 +571,7 @@ async function prepareCar(car, color) {
     return car;
   }
   if (!car.model_url) media = await api("GET", `/cars/${car.id}/media`).catch(() => ({ kind: "none" }));
-  if (media.kind === "model" && !car.model_url) car = { ...car, model_url: media.model.url, parts_url: media.model.parts_url, model_credit: media.model.credit };
+  if (media.kind === "model" && !car.model_url) car = { ...car, model_url: media.model.url, parts_url: media.model.parts_url, model_credit: media.model.credit, model_warning: media.model.warning };
   await viewer.prepare(car, color);   // без модели — простая заглушка: она нужна тесту на лося
   gallery.set(media.kind === "photos" ? media.photos : null);
   return car;
@@ -528,9 +625,13 @@ function renderDetails(rec) {
   const c = rec.car;
   const s = c.specs || {};
   $("#car-title").textContent = c.title;
+  $("#btn-moose").hidden = !c.model_url;             // тест на лося — только там, где есть 3D-модель машины
   $("#car-price").textContent = `${c.trim} · от ${money(c.price)}`;
+  $("#car-note").hidden = !rec.note;                   // «Точных совпадений нет — показываю ближайший вариант»
+  $("#car-note").textContent = rec.note || "";
   const block = (title, html) => html.trim() ? `<h3 class="specs-title">${title}</h3><div class="specs">${html}</div>` : "";
   $("#result-body").innerHTML = `
+    ${rec.note ? `<div class="block warn"><h3>Точных совпадений нет</h3><p>${esc(rec.note)}</p></div>` : ""}
     <h2 class="car-title">${esc(c.title)}</h2>
     <p class="car-meta">${esc(c.trim)} · ${esc(c.year)} · от ${money(c.price)}${rec.budget_note ? ` · ${esc(rec.budget_note)}` : ""}</p>
     ${block("Динамика", `
@@ -553,7 +654,7 @@ function renderDetails(rec) {
     ${rec.alternatives.length ? `<div class="block"><h3>Альтернативы</h3><ul>${rec.alternatives.map((a, i) => a.car ? `<li><button class="link alt-open" data-alt="${i}">${esc(a.title)}</button> <span class="alt">${esc(a.diff)}</span></li>` : `<li>${esc(a.title)} <span class="alt">${esc(a.diff)}</span></li>`).join("")}</ul></div>` : ""}
     ${c.listing_url ? `<a class="secondary" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${esc(c.listing_url)}" target="_blank" rel="noopener">Смотреть объявление</a>` : ""}`;
   $("#profile-chips").innerHTML = chipsHtml(rec.chips);
-  $("#model-credit").textContent = c.model_credit ? `3D: ${c.model_credit}` : gallery.items.length ? "Готовой 3D-модели этой машины пока нет — показана общая сцена; фото: Wikimedia Commons, свободные лицензии" : "";
+  $("#model-credit").textContent = c.model_credit ? `3D: ${c.model_credit}${c.model_warning ? ` · ⚠ ${c.model_warning}` : ""}` : gallery.items.length ? (c.market ? "Качественной 3D-модели этой машины нет — показаны фото из объявления" : "Готовой 3D-модели этой машины пока нет — показана общая сцена; фото: Wikimedia Commons, свободные лицензии") : "";
 }
 
 function renderEmpty(rec) {

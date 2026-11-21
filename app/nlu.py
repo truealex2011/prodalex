@@ -8,7 +8,7 @@ import re
 
 from . import llm
 from .brands import LUXURY, PREMIUM, find_brands
-from .models_text import find_models
+from .models_text import find_models, phonetic_models
 from .profile import ProfileDelta, chips, empty_profile, merge
 
 _END = r"(?:ая|ый|ой|ую|ого|ее|енькая|енький|еньк\w*)\b"
@@ -44,12 +44,12 @@ BODY_RULES = [
 def parse_budget(text: str):
     """Бюджет — число рядом со словами «до / за / не дороже / бюджет» или с «млн / тыс». Числа в названиях моделей («х5») не считаются."""
     text = re.sub(r"(?<![а-яa-z0-9])(?:[a-z]{1,3}[\s-]?\d{1,3}|[а-я]\d{1,3})(?![а-яa-z0-9.,])", " ", text)       # x5, m3, rs6, а4
-    cands = list(re.finditer(r"(?:до|за|не\s+дороже|бюджет\w*(?:\s+до)?|около|порядка)\s*(\d+(?:[.,]\d+)?)\s*(млн|миллион\w*|лям\w*|тыс\w*|к)?", text))
+    cands = list(re.finditer(r"(?:до|за|не\s+дороже|бюджет\w*(?:\s+до)?|около|порядка)\s*(\d+(?:[.,]\d+)?)\s*(млн|миллион\w*|лям\w*|тыс\w*|к\b)?", text))
     m = cands[0] if cands else re.search(r"(\d+(?:[.,]\d+)?)\s*(млн|миллион\w*|лям\w*|тыс\w*)", text)
     if not m:
         return None
     unit = (m.group(2) or "").lower()
-    if not unit and re.match(r"\s*(мест|л|литр|км|лет|человек|дверей|двер)", text[m.end(1):]):
+    if not unit and re.match(r"\s*(мест|л\b|литр|км|лет|человек|дверей|двер)", text[m.end(1):]):
         return None                                       # «до 5 мест» — не деньги
     num = float(m.group(1).replace(",", "."))
     if unit.startswith(("млн", "миллион", "лям")):
@@ -59,6 +59,45 @@ def parse_budget(text: str):
     elif num < 50:  # «до 2.5» без единиц — это миллионы
         num *= 1_000_000
     return int(num) if 100_000 <= num <= 100_000_000 else None
+
+
+# ───────────── бессмыслица: «ваорворвораврвроваовра» не должна превращаться в запрос ─────────────
+_VOW = set("аеёиоуыэюяaeiouy")
+_MASH = re.compile(r"qwert|asdfg|zxcv|йцук|фыва|ячсм|ghjk|hjkl")
+
+
+def _gibberish_word(w: str) -> bool:
+    if len(w) < 4:
+        return False
+    if re.search(r"(.)\1{3,}", w) or _MASH.search(w):
+        return True
+    if len(w) < 6:
+        return False
+    vow = sum(c in _VOW for c in w) / len(w)
+    run = max((len(m.group(0)) for m in re.finditer(r"[^аеёиоуыэюяaeiouy\d\-]+", w)), default=0)
+    return bool(vow < 0.15 or vow > 0.8 or run >= 6 or re.search(r"(.{2,4})\1{2,}", w)
+                or (len(w) >= 8 and len(set(w)) / len(w) < 0.5) or len(w) > 28)
+
+
+def sanitize(text: str) -> str:
+    """Текст без слов-бессмыслицы. Пусто — в тексте нет ни одного осмысленного слова."""
+    words = re.findall(r"[\w-]+|[^\w\s]+|\s+", text)
+    kept = [w for w in words if not (re.fullmatch(r"[\w-]+", w) and _gibberish_word(w.lower().replace("ё", "е")))]
+    out = re.sub(r"\s{2,}", " ", "".join(kept)).strip(" ,.;")
+    return out if re.search(r"[а-яёa-z]{2,}", out.lower()) else ""
+
+
+# слова, по которым видно, что человек говорит о машине; без них короткое слово вроде «попа» запросом не считается
+CAR_WORDS = re.compile(r"машин|авто|тачк|\bcar\b|седан|кроссовер|внедорож|универсал|х[еэ]тч|минив|джип|пикап|купе|кабриолет|катат|ездить|ездит|"
+                       r"поезд|дач|семь|дет[ие]|работ|город|трасс|бюджет|млн|тыс|дешев|дорог|мощн|быстр|надеж|эконом|комфорт|багажник|привод|"
+                       r"короб|механ|цвет|красн|син|черн|бел|сер|зелен|жел|оранж|подбер|посоветуй|нужн|хочу|ищу|куплю|взять|прокат|такси|рыбал|охот")
+
+
+def has_meaning(text: str, rules) -> bool:
+    """В описании есть хоть что-то про машину: правила что-то нашли, есть слова о машинах или текст достаточно длинный для нейросети."""
+    t = text.lower().replace("ё", "е")
+    signal = rules.hard.model_dump(exclude_none=True) or rules.nice or rules.color or rules.budget_unknown
+    return bool(signal or CAR_WORDS.search(t) or len(re.findall(r"[а-я]{3,}|[a-z]{3,}", t)) >= 4)
 
 
 def _market_paths() -> list[str]:
@@ -102,11 +141,15 @@ def parse(text: str) -> ProfileDelta:
             nice.setdefault("premium", 0.7)
         if "premium" in nice:
             nice.pop("cheap", None)
-    if named:
-        models = find_models(t, named, _market_paths())
-        if models:                              # «хочу X5» — именно X5, а не любая премиальная BMW
-            hard["models"] = models
-            hard["brands"] = sorted({m.partition("/")[0] for m in models} | set(named))
+    paths = _market_paths()
+    models = find_models(t, named, paths) if named else []
+    if not models:                              # «лэнд крузер», «камри», «кашкай»: названо по-русски без марки или с опечаткой
+        models = phonetic_models(t, paths, named or None)
+    if models:                                  # «хочу X5» — именно X5, а не любая премиальная BMW
+        hard["models"] = models
+        hard["brands"] = sorted({m.partition("/")[0] for m in models} | set(named))
+        if not named and set(hard["brands"]) & PREMIUM:
+            nice.setdefault("premium", 0.7)
     if "family" in nice:
         hard["seats_min"] = 5
     if re.search(r"7\s*мест|семь\s+мест|многодет", t):
@@ -135,12 +178,26 @@ def understood(delta: ProfileDelta) -> bool:
     return bool(delta.hard.model_dump(exclude_none=True) or delta.nice or delta.color or delta.budget_unknown or delta.skip_slots)
 
 
+def rule_goal(delta: ProfileDelta) -> str | None:
+    """Пересказ желания по тому, что нашли правила: «Ищу BMW X5, до 10 млн ₽, премиум». Без нейросети — значит, без выдумок."""
+    from .profile import chips, empty_profile, merge
+    labels = [c["label"] for c in chips(merge(empty_profile(), delta))]
+    subj = next((x.split(": ", 1)[1] for x in labels if x.startswith("модель: ")), None) or next((x.split(": ", 1)[1] for x in labels if x.startswith("марка: ")), None)
+    rest = [x for x in labels if not x.startswith(("модель: ", "марка: "))]
+    if not subj and not rest:
+        return None
+    if subj:
+        return f"Ищу {subj}" + ("".join(f", {x}" for x in rest))
+    return "Ищу машину: " + ", ".join(rest)
+
+
 def parse_ex(text: str) -> tuple[ProfileDelta, str]:
     """Описание -> (изменение профиля, чем разобрано). Если установлена нейросеть, она понимает смысл
     и пересказывает цель, а правила перекрывают её числа и жёсткие условия (бюджет, места, коробка), чтобы ничего не выдумать."""
     rules = parse(text)
     res = llm.understand(text.strip()[:600])
     if not res:
+        rules.goal = rule_goal(rules)
         return rules, "rules"
     rule_hard = rules.hard.model_dump(exclude_none=True)
     hard = {**res["hard"], **rule_hard}
@@ -152,14 +209,8 @@ def parse_ex(text: str) -> tuple[ProfileDelta, str]:
     if "premium" in nice:
         nice.pop("cheap", None)
     delta = ProfileDelta(hard=hard, nice=nice, color=rules.color or res["color"], budget_unknown=rules.budget_unknown,
-                         skip_slots=rules.skip_slots)
-    # A generated sentence isn't evidence. Summarise only validated profile fields.
-    conditions = chips(merge(empty_profile(), delta))
-    goal = '; '.join(c['label'] for c in conditions)
-    generic = {'ищу легковой автомобиль', 'ищу бюджетный легковой автомобиль', 'ищу автомобиль'}
-    meaningful = [w for w in re.findall(r'[а-яё]{4,}', text.lower()) if w not in {'хочу', 'нужна', 'нужен', 'машину', 'машина', 'авто', 'автомобиль', 'ищу', 'была', 'был'}]
-    gibberish = not meaningful and not re.search(r'[a-z]{4,}', text.lower())
-    if (not goal or (res.get('goal') or '').lower().strip('.') in generic) and not gibberish and len(text.strip()) > 2:
-        goal = f'Описание клиента: {text.strip()[:120]}'
-    delta.goal = goal or None
+                         goal=None, skip_slots=rules.skip_slots)
+    # названа марка или модель — пересказ строим по правилам (нейросеть может его исказить); иначе её пересказ, если он прошёл проверку
+    named = bool(hard.get("models") or hard.get("brands"))
+    delta.goal = rule_goal(delta) if named else (res["goal"] or rule_goal(delta))
     return delta, "llm+rules"

@@ -70,6 +70,7 @@ def _split_model(car: dict, out_dir: Path, model: dict) -> dict | None:
         log.warning("разбиение %s не удалось: %s", car["title"], e)
         return None
     path.write_bytes(glb)
+    manifest["quality"] = splitter.quality_stats(raw.read_bytes())
     manifest["credit"] = f"«{model['title']}» — {model['author']} (Sketchfab), {model['license']}"
     manifest["source_file"] = model["file"]
     path.with_suffix(".json").write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
@@ -88,6 +89,18 @@ def _split_model(car: dict, out_dir: Path, model: dict) -> dict | None:
     return manifest
 
 
+def _too_poor(manifest: dict | None, glb_path: Path) -> str | None:
+    """Причина отказа от 3D-модели по качеству (число полигонов, разрешение текстур); None — модель годится."""
+    cfg = current_app.config
+    q = (manifest or {}).get("quality")
+    if q is None:
+        try:
+            q = splitter.quality_stats(glb_path.read_bytes())
+        except Exception:
+            return None
+    return splitter.low_quality_reason(q, int(cfg.get("MODEL_MIN_TRIANGLES", 60_000)), int(cfg.get("MODEL_MIN_TEXTURE_PX", 512)))
+
+
 def _lookup(car: dict) -> None:
     out_dir, cache_dir = _dirs()
     allow_nc = bool(current_app.config.get("MODEL_ALLOW_NC", True))
@@ -97,11 +110,17 @@ def _lookup(car: dict) -> None:
     except Exception as e:      # сеть, лимиты, битый файл — не ломаем показ машины
         error = str(e)[:200]
         log.warning("поиск 3D для %s: %s", car["title"], error)
+    manifest = None
+    if model:
+        manifest = _split_model(car, out_dir, model)
+        why = _too_poor(manifest, out_dir / model["file"])
+        if why:                                  # низкополигональная или «мыльная» — показываем фото
+            log.info("3D для %s отклонена: %s", car["title"], why)
+            error, model, manifest = f"3D отклонена: {why}", None, None
     if model:
         key = f"models/sf2/{model['file']}"
         put = {}
         store = get_storage()
-        manifest = _split_model(car, out_dir, model)
         if store.name == "s3":   # файл модели (и разметка деталей) уходит в S3, локальная копия остаётся кэшем
             put = store.put_file(key, out_dir / model["file"]) | {"storage": "s3", "bucket": store.bucket, "content_type": content_type(key)}
             if manifest:
@@ -142,7 +161,8 @@ def _payload(rows: list[dict], base: str) -> dict:
         root = "/media" if model["storage"] == "s3" else base
         return {"kind": "model", "model": {
             "url": f"{root}/{model['storage_key']}", "parts_url": f"{root}/{parts['storage_key']}" if parts else None, "credit": model["credit"], "title": model["title"],
-            "source_url": model["source_url"], "license_url": model["license_url"], "origin": model["origin"]}}
+            "source_url": model["source_url"], "license_url": model["license_url"], "origin": model["origin"],
+            "warning": SF_WARNING if model["origin"] == "sketchfab" else None}}
     photos = [{"url": r["storage_key"], "credit": r["credit"], "title": r["title"], "page": r["source_url"],
                "license_url": r["license_url"]} for r in rows if r["kind"] == "image" and r["storage_key"].startswith("http")]
     return {"kind": "photos", "photos": photos} if photos else {"kind": "none"}
@@ -181,28 +201,79 @@ def _index_path() -> Path:
     return _dirs()[1] / "model3d_index.json"
 
 
+SF_WARNING = "Модель автоматически скачана с Sketchfab и может содержать ошибки"
+
+
+def own_model(name: str, year, base: str) -> dict | None:
+    """3D из нашей библиотеки (модели каталога проекта): приоритетнее всего, что можно скачать. Нужны все слова названия (марка + модель)."""
+    try:
+        cars = json.loads(Path(current_app.config["CATALOG_PATH"]).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    want = set(sketchfab.normal(name).split())
+    if len(want) < 2:
+        return None
+    best = None
+    for c in cars:
+        if not c.get("model_key"):
+            continue
+        have = set(sketchfab.normal(f"{c.get('brand', '')} {c.get('model', '')} {c.get('trim') or ''}").split())
+        if want <= have:
+            gap = abs(int(c.get("year") or year or 0) - int(year or 0)) if year else 0
+            if best is None or gap < best[0]:
+                best = (gap, c)
+    if not best:
+        return None
+    c, s3 = best[1], get_storage().name == "s3"
+    url = (lambda k: f"/media/{k}") if s3 else (lambda k: f"{base}/{k}")
+    return {"kind": "model", "at": time.time(), "url": url(c["model_key"]), "parts_url": url(c["parts_key"]) if c.get("parts_key") else None,
+            "credit": c.get("model_credit") or "Модель проекта AutoChoice", "source": "ours", "warning": None, "similar": None, "measured": None}
+
+
 def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dict:
     """3D-модель по названию из объявления: поиск на Sketchfab, загрузка GLB, разбиение на детали. Результат кэшируется."""
-    key = f"{sketchfab.normal(name)}|{year or ''}"
+    ours = own_model(name, year, base)
+    if ours:                                                   # наша модель всегда первая: поиск на Sketchfab не нужен
+        return ours
+    key = f"{sketchfab.normal(name)}|{year or ''}|q2"      # q2: с проверкой качества модели
     with _locks[hash(key)]:
         idx = json.loads(_index_path().read_text(encoding="utf-8")) if _index_path().exists() else {}
         hit = idx.get(key)
         out_dir, cache_dir = _dirs()
-        if hit and (hit["kind"] == "model" and (out_dir / hit["file"]).exists() or hit["kind"] == "none" and time.time() - hit["at"] < 7 * 86400):
+        if hit and (hit["kind"] == "model" and (out_dir / hit["file"]).exists() or hit["kind"] == "none" and time.time() - hit["at"] < 86400):
+            if hit["kind"] == "model":                   # записи кэша до появления предупреждения тоже подписываем
+                hit.setdefault("source", "sketchfab")
+                hit.setdefault("warning", SF_WARNING)
             return hit
         words = name.split()
         car = {"brand": words[0], "model": " ".join(words[1:]) or name, "title": name, "year": int(year) if str(year or "").isdigit() else None,
                "body": body, "specs": {"length_mm": length_mm}}
         payload = {"kind": "none", "at": time.time()}
         allow = bool(current_app.config.get("MODEL_ALLOW_NC", True))
-        similar = None
+        similar, manifest = None, None
+        transient = False                         # сбой сети/лимит Sketchfab: «модели нет» запоминать нельзя
+
+        def accept(m):
+            """Скачанную модель разбиваем на детали и проверяем качество: низкополигональные и «мыльные» отбрасываем (будут фото)."""
+            nonlocal manifest
+            mf = _split_model(car, out_dir, m)
+            why = _too_poor(mf, out_dir / m["file"])
+            if why:
+                log.info("3D %s для %s отклонена: %s", m.get("title"), name, why)
+                payload["reason"] = why
+                return False
+            manifest = mf
+            return True
+
         try:
             expanded = sketchfab._expand_names(car)
             model = sketchfab.find_and_download(expanded, out_dir, cache_dir, allow, sketchfab.local_candidates(expanded))
         except Exception as e:
             log.warning("3D для %s: %s", name, e)
+            model, transient = None, True
+        if model and not accept(model):
             model = None
-        if not model:                    # точной модели нет в открытом доступе: ближайшая той же марки и класса
+        elif not model and current_app.config.get("MODEL_ALLOW_SIMILAR"):   # точной нет: ближайшая той же марки (по умолчанию выключено — лучше фото)
             for alt in _similar_names(name, body):
                 words = alt.split()
                 try:
@@ -210,12 +281,12 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
                                                         out_dir, cache_dir, allow)
                 except Exception as e:
                     log.warning("3D для %s: %s", alt, e)
-                    model = None
-                if model:
+                    model, transient = None, True
+                if model and accept(model):
                     similar = alt
                     break
+                model = None
         if model:
-            manifest = _split_model(car, out_dir, model)
             store, k = get_storage(), f"models/sf2/{model['file']}"
             root = base
             if store.name == "s3":
@@ -226,7 +297,9 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
             payload = {"kind": "model", "at": time.time(), "file": model["file"], "url": f"{root}/{k}",
                        "parts_url": f"{root}/{k.replace('.glb', '.json')}" if manifest else None,
                        "credit": f"«{model['title']}» — {model['author']} (Sketchfab), {model['license']}",
-                       "measured": (manifest or {}).get("measured_real"), "similar": similar}
+                       "measured": (manifest or {}).get("measured_real"), "similar": similar, "source": "sketchfab", "warning": SF_WARNING}
+        if transient and payload["kind"] == "none":
+            return payload                        # не кэшируем: в следующий раз попробуем снова
         with _name_lock:
             idx = json.loads(_index_path().read_text(encoding="utf-8")) if _index_path().exists() else {}
             idx[key] = payload
@@ -236,18 +309,24 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
 
 
 def _similar_names(name: str, body: str | None) -> list[str]:
-    """Запасные названия для 3D: другие модели той же марки с рынка (по популярности), затем родственные бренды."""
+    """Запасные названия для 3D, когда точной модели нет: другие модели ТОЙ ЖЕ марки и ТОГО ЖЕ типа кузова (по популярности),
+    а для марок вне снимка рынка — их известные линейки. Седан не заменяем внедорожником и наоборот."""
+    import re as _re
     from . import engine
     toks = engine._tokens(name)
     brand = name.split()[0].lower().replace("-benz", "")
-    same = [m for m in engine.market_models() if m["brand"].startswith(brand) and not engine._tokens(m["title"]) >= toks]
-    same.sort(key=lambda m: -m["count"])
-    kin = {"mercedes": ["Mercedes-Benz Maybach", "Mercedes-Benz E-Class", "Mercedes-Benz AMG GT"], "bmw": ["BMW 7 Series", "BMW M5"],
-           "audi": ["Audi A8", "Audi RS7"], "lexus": ["Lexus LS"], "porsche": ["Porsche Panamera", "Porsche 911"],
-           "land": ["Range Rover"], "toyota": ["Toyota Camry"], "lada": ["Lada Vesta"],
-           "rolls-royce": ["Rolls-Royce Phantom", "Rolls-Royce Ghost", "Rolls-Royce Cullinan", "Rolls-Royce Dawn", "Rolls-Royce Wraith"],
+    want_body = engine.BODY_CATS.get(body or "")
+    same = []
+    for m in engine.market_models():
+        if not m["brand"].startswith(brand) or engine._tokens(m["title"]) >= toks:
+            continue
+        if want_body and not (m["desc"] and _re.search(want_body, m["desc"])):      # тип кузова неизвестен или другой — не берём
+            continue
+        same.append(m)
+    same.sort(key=lambda m: (-len(engine._tokens(m["title"]) & toks), -m["count"]))      # сначала родственные по названию, затем популярные
+    kin = {"rolls-royce": ["Rolls-Royce Phantom", "Rolls-Royce Ghost", "Rolls-Royce Cullinan", "Rolls-Royce Dawn", "Rolls-Royce Wraith"],
            "bentley": ["Bentley Continental GT", "Bentley Bentayga", "Bentley Flying Spur"],
            "lamborghini": ["Lamborghini Urus", "Lamborghini Huracan", "Lamborghini Aventador"],
            "ferrari": ["Ferrari 488", "Ferrari F8", "Ferrari Roma", "Ferrari 812"], "mclaren": ["McLaren 720S", "McLaren 570S"]}
-    names = kin.get(brand, []) + [m["title"] for m in same[:6]]
+    names = kin.get(brand, []) + [m["title"] for m in same[:8]]
     return list(dict.fromkeys(n for n in names if n.lower() != name.lower()))[:8]

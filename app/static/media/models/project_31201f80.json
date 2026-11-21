@@ -1,0 +1,148 @@
+{
+  "title": "LADA 2107",
+  "short_code": "oOs7o",
+  "uid": "31201f80892b404a8e49c272490a664c",
+  "credit": "«LADA 2107» — tiunov.se (Sketchfab), CC Attribution",
+  "source_url": "https://sketchfab.com/3d-models/lada-2107-31201f80892b404a8e49c272490a664c",
+  "license_url": "http://creativecommons.org/licenses/by/4.0/",
+  "license_class": "ok",
+  "selection": "manual",
+  "parts_found": [
+    "wheel_front_left",
+    "wheel_front_right",
+    "wheel_rear_left",
+    "wheel_rear_right",
+    "door_front_left",
+    "door_front_right",
+    "door_rear_left",
+    "door_rear_right",
+    "hood",
+    "trunk_lid",
+    "bumper_front",
+    "bumper_rear"
+  ],
+  "parts_missing": [],
+  "parts": [
+    {
+      "id": "wheel_front_left",
+      "node": 95,
+      "source_nodes": [
+        83
+      ],
+      "source_names": [
+        "Wheel L P"
+      ]
+    },
+    {
+      "id": "wheel_front_right",
+      "node": 96,
+      "source_nodes": [
+        3
+      ],
+      "source_names": [
+        "Wheel P P"
+      ]
+    },
+    {
+      "id": "wheel_rear_left",
+      "node": 97,
+      "source_nodes": [
+        89
+      ],
+      "source_names": [
+        "Wheel L Z"
+      ]
+    },
+    {
+      "id": "wheel_rear_right",
+      "node": 98,
+      "source_nodes": [
+        77
+      ],
+      "source_names": [
+        "Wheel P Z"
+      ]
+    },
+    {
+      "id": "door_front_left",
+      "node": 99,
+      "source_nodes": [
+        64
+      ],
+      "source_names": [
+        "DverP001"
+      ]
+    },
+    {
+      "id": "door_front_right",
+      "node": 100,
+      "source_nodes": [
+        31
+      ],
+      "source_names": [
+        "DverP"
+      ]
+    },
+    {
+      "id": "door_rear_left",
+      "node": 101,
+      "source_nodes": [
+        71
+      ],
+      "source_names": [
+        "DverP002"
+      ]
+    },
+    {
+      "id": "door_rear_right",
+      "node": 102,
+      "source_nodes": [
+        25
+      ],
+      "source_names": [
+        "DverP"
+      ]
+    },
+    {
+      "id": "hood",
+      "node": 103,
+      "source_nodes": [
+        38
+      ],
+      "source_names": [
+        "kapot"
+      ]
+    },
+    {
+      "id": "trunk_lid",
+      "node": 104,
+      "source_nodes": [
+        42
+      ],
+      "source_names": [
+        "bag"
+      ]
+    },
+    {
+      "id": "bumper_front",
+      "node": 105,
+      "source_nodes": [
+        47
+      ],
+      "source_names": [
+        "PBamp"
+      ]
+    },
+    {
+      "id": "bumper_rear",
+      "node": 106,
+      "source_nodes": [
+        52
+      ],
+      "source_names": [
+        "ZBamp"
+      ]
+    }
+  ],
+  "notes": "Группы дверей с одинаковыми именами сверены по положению относительно передней оси."
+}

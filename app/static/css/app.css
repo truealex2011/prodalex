@@ -296,6 +296,33 @@ textarea:focus, input:not([type="range"]):not([type="checkbox"]):not([type="radi
 .screen.active { display: block; animation: screen-in .35s var(--ease) backwards; }
 @keyframes screen-in { from { opacity: 0; transform: translateY(8px); } }
 
+/* ===== Фото вместо 3D-модели ===== */
+.photo-stage { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 150px clamp(14px, 4vw, 60px) 150px; overflow: hidden; background: #08080a; }
+.photo-stage::before { content: ""; position: absolute; inset: -60px; background: var(--bg-img) center / cover; filter: blur(46px) brightness(.42) saturate(1.2); transform: scale(1.1); }
+.photo-frame { position: relative; display: grid; gap: 10px; justify-items: center; margin: 0; max-width: 100%; animation: rise .5s var(--ease) backwards; }
+.photo-frame img { display: block; max-width: min(100%, 1100px); max-height: calc(100dvh - 330px); border-radius: 22px; object-fit: contain; box-shadow: 0 24px 70px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .12); background: #111; }
+.photo-frame figcaption { max-width: min(100%, 820px); padding: 7px 16px; border: 1px solid var(--glass-line); border-radius: 99px; background: rgba(18, 19, 22, .55); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); color: var(--text-2); font-size: 12.5px; text-align: center; }
+.photo-frame figcaption a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.photo-nav { position: absolute; top: 50%; z-index: 3; display: grid; place-items: center; width: 48px; height: 48px; margin-top: -24px; border: 1px solid var(--glass-line); border-radius: 50%; background: rgba(18, 19, 22, .55); color: #fff; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: background .2s, transform .2s var(--ease); }
+.photo-nav:hover { background: rgba(255, 68, 56, .75); transform: scale(1.08); }
+.photo-nav.prev { left: clamp(10px, 2.5vw, 30px); }
+.photo-nav.next { right: clamp(10px, 2.5vw, 30px); }
+.photo-thumbs { position: absolute; left: 50%; bottom: 100px; z-index: 3; display: flex; gap: 8px; max-width: calc(100% - 28px); padding: 6px; overflow-x: auto; transform: translateX(-50%); border: 1px solid var(--glass-line); border-radius: 18px; background: rgba(18, 19, 22, .55); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.photo-thumbs button { flex: none; width: 62px; height: 44px; padding: 0; overflow: hidden; border: 2px solid transparent; border-radius: 12px; background: #111; opacity: .6; transition: opacity .2s, border-color .2s; }
+.photo-thumbs button.on { border-color: var(--accent); opacity: 1; }
+.photo-thumbs img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#stage.photo-mode :is(.tour-progress, .step, .scroll-hint, .callouts, .callout-lines) { display: none; }
+#stage.moose-running .photo-stage { display: none; }
+/* интерфейс сцены всегда поверх фото */
+.stage-top, .stage-bottom, .stage-tools { z-index: 6; }
+.photo-stage { padding-bottom: 200px; }
+.photo-frame img { max-height: calc(100dvh - 400px); }
+.photo-thumbs { bottom: 92px; }
+/* фото занимает почти весь экран: по краям остаются только шапка, подпись и нижние кнопки */
+.photo-stage { padding: 88px clamp(8px, 1.6vw, 24px) 168px; }
+.photo-frame { width: min(100%, 1560px); gap: 8px; }
+.photo-frame img { width: 100%; max-width: none; height: calc(100dvh - 292px); max-height: none; object-fit: contain; border-radius: 18px; }
+
 /* =====================================================================
    Главная
    ===================================================================== */
@@ -990,3 +1017,43 @@ a.secondary { display: flex; align-items: center; justify-content: center; min-h
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+body:has(#screen-mode:not(.active))::after { background: rgba(8, 9, 12, .45) !important; }
+#btn-moose[hidden] { display: none; }
+
+/* Шапка превью: как на остальных экранах — логотип слева, аккаунт справа, но без фона и рамки (прозрачная) */
+.stage-masthead { width: 100%; max-width: none; justify-content: space-between; gap: 16px; height: 64px; margin: 6px 0 0; padding: 0; overflow: visible; border: 0; border-radius: 0; background: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.stage-masthead::before { display: none; }
+.stage-masthead .brand { text-shadow: 0 1px 14px rgba(0, 0, 0, .6); }
+.stage-masthead .acc-btn { background: rgba(14, 15, 18, .38); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+
+
+/* Фото: размер подгоняет скрипт (fitPhoto) под экран с сохранением пропорций; вместо чёрных полос по краям — размытое то же фото */
+.photo-stage::before { filter: blur(40px) brightness(.62) saturate(1.35); }
+.photo-frame img { width: auto; height: auto; max-width: none; max-height: none; background: none; object-fit: contain; }
+.photo-fs { position: absolute; right: clamp(10px, 2.5vw, 30px); bottom: 108px; z-index: 4; display: grid; place-items: center; width: 46px; height: 46px; padding: 0; border: 1px solid var(--glass-line); border-radius: 50%; background: rgba(18, 19, 22, .55); color: #fff; cursor: pointer; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: background .2s, transform .2s var(--ease); }
+.photo-fs:hover { background: rgba(255, 68, 56, .75); transform: scale(1.08); }
+.photo-fs .ico { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Лупа: фото на всё окно, вокруг — размытое то же фото (чёрных краёв нет) */
+#zoom { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; overflow: hidden; background: #0a0a0c; touch-action: none; }
+#zoom[hidden] { display: none; }
+#zoom::before { content: ""; position: absolute; inset: -60px; background: var(--bg-img) center / cover; filter: blur(44px) brightness(.55) saturate(1.35); }
+#zoom-img { position: relative; max-width: none; max-height: none; transform-origin: center; cursor: zoom-in; user-select: none; -webkit-user-drag: none; will-change: transform; box-shadow: 0 24px 90px rgba(0, 0, 0, .5); }
+#zoom.zoomed #zoom-img { cursor: grab; }
+#zoom.zoomed #zoom-img:active { cursor: grabbing; }
+.zoom-btn { position: absolute; z-index: 2; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 1px solid rgba(255, 255, 255, .25); border-radius: 50%; background: rgba(18, 19, 22, .55); color: #fff; cursor: pointer; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: background .2s, transform .2s var(--ease); }
+.zoom-btn:hover { background: rgba(255, 68, 56, .75); transform: scale(1.08); }
+.zoom-btn .ico { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#zoom-close { top: 18px; right: 18px; }
+#zoom-prev { left: 18px; top: calc(50% - 24px); }
+#zoom-next { right: 18px; top: calc(50% - 24px); }
+#zoom-count, #zoom-hint { position: absolute; z-index: 2; left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 99px; background: rgba(18, 19, 22, .55); color: rgba(255, 255, 255, .85); font-size: 12.5px; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); pointer-events: none; }
+#zoom-count { top: 18px; }
+#zoom-hint { bottom: 18px; }
+@media (hover: none) { #zoom-hint { display: none; } }
+.photo-nav { padding: 0; line-height: 0; }
+
+/* «Точных совпадений нет — показываю ближайший вариант» */
+.car-note { max-width: 330px; margin: 8px 0 0; padding: 7px 10px; border-left: 3px solid #ffd23f; border-radius: 0 10px 10px 0; background: rgba(255, 210, 63, .12); color: #ffe38a; font-size: 12.5px; line-height: 1.4; }
+.block.warn { border-left: 3px solid #ffd23f; background: rgba(255, 210, 63, .1); }
+.block.warn h3 { color: #ffd23f; }

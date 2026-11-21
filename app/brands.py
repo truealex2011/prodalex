@@ -17,7 +17,7 @@ BRANDS = {
     "maybach": ("Maybach", r"maybach|майбах"),
     "porsche": ("Porsche", r"porsche|порше|порш\b"),
     "mercedes-benz": ("Mercedes-Benz", r"mercedes|мерседес|мерс\b|мерина|гелик|гелендваген|амг\b|amg\b"),
-    "bmw": ("BMW", r"\bbmw\b|бмв|бэха|бэху|беха|бумер"),
+    "bmw": ("BMW", r"\bbmw\b|бмв|\bб[еэ]х[аеуиыо]\w{0,3}|бумер"),
     "audi": ("Audi", r"\baudi\b|ауди"),
     "lexus": ("Lexus", r"lexus|лексус"),
     "land_rover": ("Land Rover", r"land\s*rover|range\s*rover|ленд\s*ровер|рэндж|рендж|ровер"),

@@ -1,0 +1,118 @@
+{
+  "title": "toyota crown 2025",
+  "short_code": "pDUSE",
+  "uid": "9f48fc0a66e44a69a09fda2f864e5944",
+  "credit": "«toyota crown 2025» — sultan (Sketchfab), CC Attribution",
+  "source_url": "https://sketchfab.com/3d-models/toyota-crown-2025-9f48fc0a66e44a69a09fda2f864e5944",
+  "license_url": "http://creativecommons.org/licenses/by/4.0/",
+  "license_class": "ok",
+  "selection": "manual",
+  "parts_found": [
+    "wheel_tires_set",
+    "wheel_trim_front_pair",
+    "wheel_trim_rear_pair",
+    "door_skins_front_pair",
+    "door_skins_rear_pair",
+    "trunk_outer_panel"
+  ],
+  "parts_missing": [
+    "door_front_left",
+    "door_front_right",
+    "hood",
+    "wheel_front_left",
+    "wheel_front_right",
+    "wheel_rear_left",
+    "wheel_rear_right"
+  ],
+  "parts": [
+    {
+      "id": "wheel_tires_set",
+      "node": 185,
+      "source_nodes": [
+        147
+      ],
+      "source_names": [
+        "151"
+      ]
+    },
+    {
+      "id": "wheel_trim_front_pair",
+      "node": 186,
+      "source_nodes": [
+        15,
+        19,
+        46,
+        48,
+        53,
+        115,
+        117,
+        126
+      ],
+      "source_names": [
+        "644",
+        "630",
+        "531",
+        "523",
+        "507",
+        "260",
+        "252",
+        "220"
+      ]
+    },
+    {
+      "id": "wheel_trim_rear_pair",
+      "node": 187,
+      "source_nodes": [
+        13,
+        21,
+        41,
+        43,
+        51,
+        111,
+        113,
+        124
+      ],
+      "source_names": [
+        "652",
+        "624",
+        "547",
+        "539",
+        "515",
+        "276",
+        "268",
+        "228"
+      ]
+    },
+    {
+      "id": "door_skins_front_pair",
+      "node": 188,
+      "source_nodes": [
+        77
+      ],
+      "source_names": [
+        "418"
+      ]
+    },
+    {
+      "id": "door_skins_rear_pair",
+      "node": 189,
+      "source_nodes": [
+        75
+      ],
+      "source_names": [
+        "426"
+      ]
+    },
+    {
+      "id": "trunk_outer_panel",
+      "node": 190,
+      "source_nodes": [
+        85
+      ],
+      "source_names": [
+        "386"
+      ]
+    }
+  ],
+  "notes": "Шины объединены в одну сетку, накладки и панели дверей объединены попарно."
+}

@@ -1,0 +1,107 @@
+{
+  "title": "Nissan Cefiro A31",
+  "short_code": "oPtTK",
+  "uid": "539b2257cb504e53969a8c38c1a686cc",
+  "credit": "«Nissan Cefiro A31» — Asadawut.Kaewma (Sketchfab), CC Attribution",
+  "source_url": "https://sketchfab.com/3d-models/nissan-cefiro-a31-539b2257cb504e53969a8c38c1a686cc",
+  "license_url": "http://creativecommons.org/licenses/by/4.0/",
+  "license_class": "ok",
+  "selection": "manual",
+  "parts_found": [
+    "wheel_front_left",
+    "wheel_front_right",
+    "wheel_rear_left",
+    "wheel_rear_right",
+    "hood",
+    "trunk_lid",
+    "seat",
+    "steering_wheel"
+  ],
+  "parts_missing": [
+    "door_front_left",
+    "door_front_right"
+  ],
+  "parts": [
+    {
+      "id": "wheel_front_left",
+      "node": 217,
+      "source_nodes": [
+        3
+      ],
+      "source_names": [
+        "WHEEL_LF"
+      ]
+    },
+    {
+      "id": "wheel_front_right",
+      "node": 218,
+      "source_nodes": [
+        51
+      ],
+      "source_names": [
+        "WHEEL_RF"
+      ]
+    },
+    {
+      "id": "wheel_rear_left",
+      "node": 219,
+      "source_nodes": [
+        27
+      ],
+      "source_names": [
+        "WHEEL_LR"
+      ]
+    },
+    {
+      "id": "wheel_rear_right",
+      "node": 220,
+      "source_nodes": [
+        75
+      ],
+      "source_names": [
+        "WHEEL_RR"
+      ]
+    },
+    {
+      "id": "hood",
+      "node": 221,
+      "source_nodes": [
+        109
+      ],
+      "source_names": [
+        "body_006"
+      ]
+    },
+    {
+      "id": "trunk_lid",
+      "node": 222,
+      "source_nodes": [
+        99
+      ],
+      "source_names": [
+        "body_002"
+      ]
+    },
+    {
+      "id": "seat",
+      "node": 223,
+      "source_nodes": [
+        170
+      ],
+      "source_names": [
+        "seat_LOD0_0"
+      ]
+    },
+    {
+      "id": "steering_wheel",
+      "node": 224,
+      "source_nodes": [
+        181
+      ],
+      "source_names": [
+        "STEER_HR"
+      ]
+    }
+  ],
+  "notes": "Дверные панели не выделены по сторонам."
+}
