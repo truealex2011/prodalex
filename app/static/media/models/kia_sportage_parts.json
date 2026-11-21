@@ -1,0 +1,811 @@
+{
+  "source_file": "2023_kia_sportage_gt-line.glb",
+  "front": "+Z",
+  "up": "+Y",
+  "vehicle": {
+    "source": "NHTSA vPIC",
+    "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/Kia/modelyear/2023?format=json",
+    "status": "matched",
+    "matches": [
+      {
+        "make": "KIA",
+        "model": "Sportage"
+      }
+    ],
+    "requested_year": 2023,
+    "query_origin": "user_input"
+  },
+  "parts": [
+    {
+      "id": "door_front_left",
+      "nodes": [
+        "door_front_left",
+        "door_front_left_2",
+        "door_front_left_3",
+        "door_front_left_4",
+        "door_front_left_5"
+      ],
+      "triangles": 6377,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          0.5815475203895178,
+          0.30510831427685237,
+          -0.3141021407683422
+        ],
+        "max": [
+          0.9193634063284628,
+          1.5433157036711715,
+          0.84181978322064
+        ]
+      }
+    },
+    {
+      "id": "door_front_right",
+      "nodes": [
+        "door_front_right",
+        "door_front_right_2",
+        "door_front_right_3",
+        "door_front_right_4",
+        "door_front_right_5"
+      ],
+      "triangles": 7325,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.9193634063284629,
+          0.30510831427685237,
+          -0.314102140768342
+        ],
+        "max": [
+          -0.5815475203895178,
+          1.5433157036711715,
+          0.8418197069266986
+        ]
+      }
+    },
+    {
+      "id": "door_rear_left",
+      "nodes": [
+        "door_rear_left",
+        "door_rear_left_2",
+        "door_rear_left_3",
+        "door_rear_left_4",
+        "door_rear_left_5",
+        "door_rear_left_6"
+      ],
+      "triangles": 9181,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          0.5676186498574015,
+          0.25755386042098705,
+          -1.402083899958745
+        ],
+        "max": [
+          0.9332371866745997,
+          1.5477744559945554,
+          -0.2158738555380235
+        ]
+      }
+    },
+    {
+      "id": "door_rear_right",
+      "nodes": [
+        "door_rear_right",
+        "door_rear_right_2",
+        "door_rear_right_3",
+        "door_rear_right_4",
+        "door_rear_right_5",
+        "door_rear_right_6"
+      ],
+      "triangles": 9155,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.9332369114642098,
+          0.2575540255380201,
+          -1.4020840525466285
+        ],
+        "max": [
+          -0.567618649857402,
+          1.5477742912183978,
+          -0.21587385553802296
+        ]
+      }
+    },
+    {
+      "id": "front_bumper",
+      "nodes": [
+        "front_bumper",
+        "front_bumper_2",
+        "front_bumper_3",
+        "front_bumper_4",
+        "front_bumper_5"
+      ],
+      "triangles": 27426,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.9211420791830665,
+          0.24307408599836478,
+          1.7051459913261628
+        ],
+        "max": [
+          0.9211420791830673,
+          0.9345301379047067,
+          2.252672703681764
+        ]
+      }
+    },
+    {
+      "id": "hood",
+      "nodes": [
+        "hood"
+      ],
+      "triangles": 1494,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.8041926978144318,
+          0.8769430587526909,
+          1.0083190938457391
+        ],
+        "max": [
+          0.8041926215204906,
+          1.1329892694186081,
+          2.1511122778623704
+        ]
+      }
+    },
+    {
+      "id": "mirror_left",
+      "nodes": [
+        "mirror_left"
+      ],
+      "triangles": 568,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          0.9192221099480608,
+          1.1007891734669446,
+          0.49054250796990406
+        ],
+        "max": [
+          1.0388623023536334,
+          1.143161748770743,
+          0.6475138618235237
+        ]
+      }
+    },
+    {
+      "id": "mirror_right",
+      "nodes": [
+        "mirror_right"
+      ],
+      "triangles": 568,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -1.038862378647575,
+          1.1007891734669446,
+          0.4905425079699046
+        ],
+        "max": [
+          -0.9192221099480604,
+          1.143161748770743,
+          0.6475138618235241
+        ]
+      }
+    },
+    {
+      "id": "rear_bumper",
+      "nodes": [
+        "rear_bumper",
+        "rear_bumper_2"
+      ],
+      "triangles": 7360,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.9109887288068794,
+          0.2889928862358964,
+          -2.263569016916649
+        ],
+        "max": [
+          0.9109887288068785,
+          0.7471140428207707,
+          -1.711004347725223
+        ]
+      }
+    },
+    {
+      "id": "trunk_lid",
+      "nodes": [
+        "trunk_lid",
+        "trunk_lid_2",
+        "trunk_lid_3"
+      ],
+      "triangles": 4008,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.6501293654682022,
+          1.1811288048590378,
+          -2.161801006907167
+        ],
+        "max": [
+          0.6497235579912248,
+          1.5180075850997978,
+          -1.5180646597471306
+        ]
+      }
+    },
+    {
+      "id": "unclassified",
+      "nodes": [
+        "unclassified",
+        "unclassified_2",
+        "unclassified_3",
+        "unclassified_4",
+        "unclassified_5",
+        "unclassified_6",
+        "unclassified_7",
+        "unclassified_8",
+        "unclassified_9",
+        "unclassified_10",
+        "unclassified_11",
+        "unclassified_12",
+        "unclassified_13",
+        "unclassified_14",
+        "unclassified_15",
+        "unclassified_16",
+        "unclassified_17",
+        "unclassified_18",
+        "unclassified_19",
+        "unclassified_20",
+        "unclassified_21",
+        "unclassified_22",
+        "unclassified_23",
+        "unclassified_24",
+        "unclassified_25",
+        "unclassified_26",
+        "unclassified_27",
+        "unclassified_28",
+        "unclassified_29",
+        "unclassified_30",
+        "unclassified_31",
+        "unclassified_32",
+        "unclassified_33",
+        "unclassified_34",
+        "unclassified_35",
+        "unclassified_36",
+        "unclassified_37",
+        "unclassified_38",
+        "unclassified_39",
+        "unclassified_40",
+        "unclassified_41",
+        "unclassified_42",
+        "unclassified_43",
+        "unclassified_44",
+        "unclassified_45",
+        "unclassified_46",
+        "unclassified_47",
+        "unclassified_48",
+        "unclassified_49",
+        "unclassified_50",
+        "unclassified_51",
+        "unclassified_52",
+        "unclassified_53",
+        "unclassified_54",
+        "unclassified_55",
+        "unclassified_56",
+        "unclassified_57",
+        "unclassified_58",
+        "unclassified_59",
+        "unclassified_60",
+        "unclassified_61",
+        "unclassified_62",
+        "unclassified_63",
+        "unclassified_64",
+        "unclassified_65",
+        "unclassified_66",
+        "unclassified_67",
+        "unclassified_68",
+        "unclassified_69",
+        "unclassified_70",
+        "unclassified_71",
+        "unclassified_72",
+        "unclassified_73",
+        "unclassified_74",
+        "unclassified_75",
+        "unclassified_76",
+        "unclassified_77",
+        "unclassified_78",
+        "unclassified_79",
+        "unclassified_80",
+        "unclassified_81",
+        "unclassified_82",
+        "unclassified_83",
+        "unclassified_84",
+        "unclassified_85",
+        "unclassified_86",
+        "unclassified_87",
+        "unclassified_88",
+        "unclassified_89",
+        "unclassified_90",
+        "unclassified_91",
+        "unclassified_92",
+        "unclassified_93",
+        "unclassified_94",
+        "unclassified_95",
+        "unclassified_96",
+        "unclassified_97",
+        "unclassified_98",
+        "unclassified_99",
+        "unclassified_100",
+        "unclassified_101",
+        "unclassified_102",
+        "unclassified_103",
+        "unclassified_104",
+        "unclassified_105",
+        "unclassified_106",
+        "unclassified_107",
+        "unclassified_108",
+        "unclassified_109",
+        "unclassified_110",
+        "unclassified_111",
+        "unclassified_112",
+        "unclassified_113",
+        "unclassified_114",
+        "unclassified_115",
+        "unclassified_116",
+        "unclassified_117",
+        "unclassified_118",
+        "unclassified_119",
+        "unclassified_120",
+        "unclassified_121",
+        "unclassified_122",
+        "unclassified_123",
+        "unclassified_124",
+        "unclassified_125",
+        "unclassified_126",
+        "unclassified_127",
+        "unclassified_128",
+        "unclassified_129",
+        "unclassified_130",
+        "unclassified_131",
+        "unclassified_132",
+        "unclassified_133",
+        "unclassified_134",
+        "unclassified_135",
+        "unclassified_136",
+        "unclassified_137",
+        "unclassified_138",
+        "unclassified_139",
+        "unclassified_140",
+        "unclassified_141",
+        "unclassified_142",
+        "unclassified_143",
+        "unclassified_144",
+        "unclassified_145",
+        "unclassified_146",
+        "unclassified_147",
+        "unclassified_148",
+        "unclassified_149",
+        "unclassified_150",
+        "unclassified_151",
+        "unclassified_152",
+        "unclassified_153",
+        "unclassified_154",
+        "unclassified_155",
+        "unclassified_156",
+        "unclassified_157",
+        "unclassified_158",
+        "unclassified_159",
+        "unclassified_160",
+        "unclassified_161",
+        "unclassified_162",
+        "unclassified_163",
+        "unclassified_164",
+        "unclassified_165",
+        "unclassified_166",
+        "unclassified_167",
+        "unclassified_168",
+        "unclassified_169",
+        "unclassified_170",
+        "unclassified_171",
+        "unclassified_172",
+        "unclassified_173",
+        "unclassified_174",
+        "unclassified_175",
+        "unclassified_176",
+        "unclassified_177",
+        "unclassified_178",
+        "unclassified_179",
+        "unclassified_180",
+        "unclassified_181",
+        "unclassified_182",
+        "unclassified_183",
+        "unclassified_184",
+        "unclassified_185",
+        "unclassified_186",
+        "unclassified_187",
+        "unclassified_188",
+        "unclassified_189",
+        "unclassified_190",
+        "unclassified_191",
+        "unclassified_192",
+        "unclassified_193",
+        "unclassified_194",
+        "unclassified_195",
+        "unclassified_196",
+        "unclassified_197",
+        "unclassified_198",
+        "unclassified_199",
+        "unclassified_200",
+        "unclassified_201",
+        "unclassified_202",
+        "unclassified_203",
+        "unclassified_204",
+        "unclassified_205",
+        "unclassified_206",
+        "unclassified_207",
+        "unclassified_208",
+        "unclassified_209",
+        "unclassified_210",
+        "unclassified_211",
+        "unclassified_212",
+        "unclassified_213",
+        "unclassified_214",
+        "unclassified_215",
+        "unclassified_216",
+        "unclassified_217",
+        "unclassified_218",
+        "unclassified_219",
+        "unclassified_220",
+        "unclassified_221",
+        "unclassified_222",
+        "unclassified_223",
+        "unclassified_224",
+        "unclassified_225",
+        "unclassified_226",
+        "unclassified_227",
+        "unclassified_228",
+        "unclassified_229",
+        "unclassified_230",
+        "unclassified_231",
+        "unclassified_232",
+        "unclassified_233",
+        "unclassified_234",
+        "unclassified_235",
+        "unclassified_236",
+        "unclassified_237",
+        "unclassified_238",
+        "unclassified_239",
+        "unclassified_240",
+        "unclassified_241",
+        "unclassified_242",
+        "unclassified_243",
+        "unclassified_244",
+        "unclassified_245",
+        "unclassified_246",
+        "unclassified_247",
+        "unclassified_248",
+        "unclassified_249",
+        "unclassified_250",
+        "unclassified_251",
+        "unclassified_252",
+        "unclassified_253",
+        "unclassified_254",
+        "unclassified_255",
+        "unclassified_256",
+        "unclassified_257",
+        "unclassified_258",
+        "unclassified_259",
+        "unclassified_260",
+        "unclassified_261",
+        "unclassified_262",
+        "unclassified_263",
+        "unclassified_264",
+        "unclassified_265",
+        "unclassified_266",
+        "unclassified_267",
+        "unclassified_268",
+        "unclassified_269",
+        "unclassified_270",
+        "unclassified_271",
+        "unclassified_272",
+        "unclassified_273",
+        "unclassified_274",
+        "unclassified_275",
+        "unclassified_276",
+        "unclassified_277",
+        "unclassified_278",
+        "unclassified_279",
+        "unclassified_280",
+        "unclassified_281",
+        "unclassified_282",
+        "unclassified_283",
+        "unclassified_284",
+        "unclassified_285",
+        "unclassified_286",
+        "unclassified_287",
+        "unclassified_288",
+        "unclassified_289",
+        "unclassified_290",
+        "unclassified_291",
+        "unclassified_292",
+        "unclassified_293",
+        "unclassified_294",
+        "unclassified_295",
+        "unclassified_296",
+        "unclassified_297",
+        "unclassified_298",
+        "unclassified_299",
+        "unclassified_300",
+        "unclassified_301",
+        "unclassified_302",
+        "unclassified_303",
+        "unclassified_304",
+        "unclassified_305",
+        "unclassified_306",
+        "unclassified_307",
+        "unclassified_308",
+        "unclassified_309",
+        "unclassified_310",
+        "unclassified_311",
+        "unclassified_312",
+        "unclassified_313",
+        "unclassified_314",
+        "unclassified_315",
+        "unclassified_316",
+        "unclassified_317",
+        "unclassified_318",
+        "unclassified_319",
+        "unclassified_320",
+        "unclassified_321",
+        "unclassified_322",
+        "unclassified_323",
+        "unclassified_324",
+        "unclassified_325",
+        "unclassified_326",
+        "unclassified_327",
+        "unclassified_328",
+        "unclassified_329",
+        "unclassified_330",
+        "unclassified_331",
+        "unclassified_332",
+        "unclassified_333",
+        "unclassified_334",
+        "unclassified_335",
+        "unclassified_336",
+        "unclassified_337",
+        "unclassified_338",
+        "unclassified_339",
+        "unclassified_340",
+        "unclassified_341",
+        "unclassified_342",
+        "unclassified_343",
+        "unclassified_344",
+        "unclassified_345",
+        "unclassified_346",
+        "unclassified_347",
+        "unclassified_348",
+        "unclassified_349",
+        "unclassified_350",
+        "unclassified_351",
+        "unclassified_352",
+        "unclassified_353",
+        "unclassified_354",
+        "unclassified_355",
+        "unclassified_356",
+        "unclassified_357",
+        "unclassified_358",
+        "unclassified_359",
+        "unclassified_360",
+        "unclassified_361",
+        "unclassified_362",
+        "unclassified_363",
+        "unclassified_364",
+        "unclassified_365",
+        "unclassified_366",
+        "unclassified_367",
+        "unclassified_368",
+        "unclassified_369",
+        "unclassified_370",
+        "unclassified_371",
+        "unclassified_372",
+        "unclassified_373",
+        "unclassified_374",
+        "unclassified_375",
+        "unclassified_376",
+        "unclassified_377",
+        "unclassified_378",
+        "unclassified_379",
+        "unclassified_380",
+        "unclassified_381",
+        "unclassified_382",
+        "unclassified_383",
+        "unclassified_384",
+        "unclassified_385",
+        "unclassified_386",
+        "unclassified_387",
+        "unclassified_388",
+        "unclassified_389",
+        "unclassified_390",
+        "unclassified_391"
+      ],
+      "triangles": 451737,
+      "status": "review",
+      "bbox": {
+        "min": [
+          -1.0550735824516864,
+          0.1893705758397677,
+          -2.261268289159184
+        ],
+        "max": [
+          1.0550734298638027,
+          1.653269503505221,
+          2.266025359853342
+        ]
+      }
+    },
+    {
+      "id": "wheel_front_left",
+      "nodes": [
+        "wheel_front_left",
+        "wheel_front_left_2",
+        "wheel_front_left_3",
+        "wheel_front_left_4",
+        "wheel_front_left_5",
+        "wheel_front_left_6",
+        "wheel_front_left_7",
+        "wheel_front_left_8",
+        "wheel_front_left_9",
+        "wheel_front_left_10",
+        "wheel_front_left_11",
+        "wheel_front_left_12",
+        "wheel_front_left_13",
+        "wheel_front_left_14",
+        "wheel_front_left_15"
+      ],
+      "triangles": 15507,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          0.6708237907239035,
+          -0.0017307617356867033,
+          1.0010661567977623
+        ],
+        "max": [
+          0.912523704388069,
+          0.6918646771270682,
+          1.6948879565104051
+        ]
+      }
+    },
+    {
+      "id": "wheel_front_right",
+      "nodes": [
+        "wheel_front_right",
+        "wheel_front_right_2",
+        "wheel_front_right_3",
+        "wheel_front_right_4",
+        "wheel_front_right_5",
+        "wheel_front_right_6",
+        "wheel_front_right_7",
+        "wheel_front_right_8",
+        "wheel_front_right_9",
+        "wheel_front_right_10",
+        "wheel_front_right_11",
+        "wheel_front_right_12",
+        "wheel_front_right_13",
+        "wheel_front_right_14",
+        "wheel_front_right_15"
+      ],
+      "triangles": 15507,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.9061627731337628,
+          -0.0017277099779423044,
+          1.0010691670681466
+        ],
+        "max": [
+          -0.6644628594695972,
+          0.6918677288848126,
+          1.6948909667807894
+        ]
+      }
+    },
+    {
+      "id": "wheel_rear_left",
+      "nodes": [
+        "wheel_rear_left",
+        "wheel_rear_left_2",
+        "wheel_rear_left_3",
+        "wheel_rear_left_4",
+        "wheel_rear_left_5",
+        "wheel_rear_left_6",
+        "wheel_rear_left_7",
+        "wheel_rear_left_8",
+        "wheel_rear_left_9",
+        "wheel_rear_left_10",
+        "wheel_rear_left_11",
+        "wheel_rear_left_12",
+        "wheel_rear_left_13",
+        "wheel_rear_left_14"
+      ],
+      "triangles": 14741,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          0.675052916605937,
+          0.0031823012038147414,
+          -1.6789308841297126
+        ],
+        "max": [
+          0.9167528302701025,
+          0.6967777400665697,
+          -0.9851090844170699
+        ]
+      }
+    },
+    {
+      "id": "wheel_rear_right",
+      "nodes": [
+        "wheel_rear_right",
+        "wheel_rear_right_2",
+        "wheel_rear_right_3",
+        "wheel_rear_right_4",
+        "wheel_rear_right_5",
+        "wheel_rear_right_6",
+        "wheel_rear_right_7",
+        "wheel_rear_right_8",
+        "wheel_rear_right_9",
+        "wheel_rear_right_10",
+        "wheel_rear_right_11",
+        "wheel_rear_right_12",
+        "wheel_rear_right_13",
+        "wheel_rear_right_14"
+      ],
+      "triangles": 14741,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.9167528302701042,
+          0.0031823012038148524,
+          -1.6789307730291854
+        ],
+        "max": [
+          -0.6750529166059385,
+          0.6967777400665698,
+          -0.9851089733165426
+        ]
+      }
+    },
+    {
+      "id": "windshield",
+      "nodes": [
+        "windshield",
+        "windshield_2",
+        "windshield_3"
+      ],
+      "triangles": 1528,
+      "status": "approximate",
+      "bbox": {
+        "min": [
+          -0.7361371283469873,
+          1.0727535801042312,
+          0.23124363909751375
+        ],
+        "max": [
+          0.7362043433098036,
+          1.530594003359131,
+          1.165353697010119
+        ]
+      }
+    }
+  ]
+}

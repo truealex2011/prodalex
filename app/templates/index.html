@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f0443a">
+  <title>AutoChoice — подбор машины по описанию</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='media/autochoice-icon.svg') }}?v=3">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='media/autochoice-icon.svg') }}?v=3">
+  <!-- заранее грузим фон и шрифты, чтобы стеклянные блоки не «доезжали» по очереди -->
+  <link rel="preload" as="image" href="{{ url_for('static', filename='media/env/bg.webp') }}">
+  <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Inter.ttf') }}">
+  <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Unbounded.ttf') }}">
+  <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Benzin-Semibold.ttf') }}">
+  <link rel="preload" as="font" type="font/ttf" crossorigin href="{{ url_for('static', filename='fonts/Nauryz.ttf') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script type="importmap">
+  {"imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }}
+  </script>
+</head>
+<body>
+<main id="app">
+  <header class="masthead">
+    <a class="brand" href="/" aria-label="AutoChoice — на главную">
+      <img src="{{ url_for('static', filename='media/autochoice-icon.svg') }}?v=3" alt="" aria-hidden="true">
+      AutoChoice
+    </a>
+    <button class="acc-btn" id="acc-btn" type="button" aria-label="Аккаунт"><span class="avatar" id="acc-avatar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="acc-name" id="acc-name">Войти</span></button>
+  </header>
+
+  <section class="screen active" id="screen-mode">
+    <div class="hero">
+      <p class="eyebrow">Подбор автомобиля</p>
+      <h1>Подберём машину для<br><span class="h1-accent">ВАС</span></h1>
+      <p class="lead">Сервис по подбору автомобилей для ваших задач</p>
+    </div>
+    <div class="mode-panel">
+      <p class="panel-title">Опишите машину своими словами</p>
+      <p class="mode-hint">Остальное уточним короткими вопросами.</p>
+      <button class="primary" id="start-btn" type="button">Начать подбор</button>
+    </div>
+  </section>
+
+  <section class="screen panel" id="screen-pick">
+    <p class="eyebrow">Перед началом</p>
+    <h2>Как хорошо вы разбираетесь в машинах?</h2>
+    <p class="mode-hint" id="pick-hint" hidden>Запомним выбор в аккаунте — изменить можно в настройках.</p>
+    <div class="cards">
+        <button class="card-btn" data-mode="novice">
+          <span class="card-ico"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></span>
+          <span class="card-txt"><b>Новичок</b><span>Простые вопросы, без терминов</span></span>
+          <svg class="card-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
+        </button>
+        <button class="card-btn" data-mode="expert">
+          <span class="card-ico"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14l4-4"/><path d="M3.3 17a9 9 0 1 1 17.4 0"/></svg></span>
+          <span class="card-txt"><b>Эксперт</b><span>Привод, коробка, динамика</span></span>
+          <svg class="card-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
+        </button>
+      </div>
+    <button class="link" id="pick-back" type="button">← Назад</button>
+  </section>
+
+  <section class="screen panel" id="screen-describe">
+    <p class="eyebrow">Шаг 1 из 2</p>
+    <h2>Какая машина нужна?</h2>
+    <textarea id="describe-text" rows="4" maxlength="1000"
+      placeholder="Например: для семьи, красная, не очень мощная, и чтобы бензина мало ела"></textarea>
+    <div class="chips" id="hint-chips">
+      <button class="chip">для семьи</button><button class="chip">первая машина</button>
+      <button class="chip">мало ест</button><button class="chip">для города</button>
+      <button class="chip">на дачу</button><button class="chip">автомат</button>
+    </div>
+    <button class="primary" id="describe-go">Дальше</button>
+    <button class="link" id="describe-skip">Не знаю — помогите вопросами</button>
+  </section>
+
+  <section class="screen panel" id="screen-question">
+    <div class="qa-bar"><i id="qa-bar"></i></div>
+    <p class="eyebrow">Шаг 2 · уточняем</p>
+    <h2>Несколько уточнений</h2>
+    <p class="goal-note" id="q-goal" hidden></p>
+    <div class="qa-known" id="qa-known"></div>
+    <p class="qa-status" role="status"><i class="qa-wait" id="qa-wait" hidden></i><span id="qa-status-text"></span></p>
+    <div class="qa-list" id="qa-list"></div>
+    <div class="qa-actions">
+      <button class="primary" id="qa-finish" type="button">Показать машину</button>
+      <button class="secondary" id="qa-more" type="button" hidden>Уточнить ещё</button>
+      <button class="link" id="qa-retry" type="button" hidden>Повторить</button>
+    </div>
+  </section>
+
+  <section class="screen panel" id="screen-loading">
+    <div class="ldr-car" role="status" aria-label="Loading">
+      <span class="ldr-car-road"></span>
+      <span class="ldr-car-body">
+        <span class="ldr-car-wheel"></span><span class="ldr-car-wheel"></span>
+      </span>
+      <span class="ldr-car-wind"></span>
+    </div>
+    <p class="loading-text" id="loading-text" role="status">Подбираем машину...</p>
+    <p class="goal-note" id="loading-goal" hidden></p>
+    <div class="load-steps" id="load-steps" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+    <button class="link" id="load-cancel" type="button">Отменить</button>
+  </section>
+
+  <!-- Личный кабинет -->
+  <section class="screen" id="screen-account">
+    <div class="acc">
+      <div class="acc-top"><button class="back-btn" id="acc-back" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>К подбору</button></div>
+      <div class="acc-hero">
+        <div class="avatar lg" id="acc-hero-avatar"></div>
+        <div class="acc-id"><h2 id="acc-title"></h2><p id="acc-mail"></p></div>
+        <span class="mode-badge" id="acc-mode"></span>
+        <button class="btn-ghost btn-out" id="hero-logout" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Выйти</button>
+      </div>
+      <div class="seg" id="acc-tabs" role="tablist" style="--n:3;--i:0"><i class="seg-thumb"></i>
+        <button class="seg-btn active" data-tab="saved" role="tab" type="button">Сохранённые <em id="cnt-saved" hidden></em></button>
+        <button class="seg-btn" data-tab="history" role="tab" type="button">История</button>
+        <button class="seg-btn" data-tab="settings" role="tab" type="button">Настройки</button>
+      </div>
+      <div class="acc-body" id="acc-body"></div>
+    </div>
+  </section>
+
+  <!-- Результат: 3D на весь экран, прокрутка ведёт по экскурсии -->
+  <section class="screen" id="screen-result">
+    <div id="tour-track" aria-hidden="true"></div>
+  </section>
+
+  <!-- Ничего не нашлось: обычная страница с объяснением -->
+  <section class="screen panel" id="screen-empty">
+    <div id="empty-body"></div>
+    <p class="label">Ваши условия (× — убрать):</p>
+    <div class="chips" id="empty-chips"></div>
+  </section>
+</main>
+
+<!-- Сцена живёт вне #app, чтобы занимать весь экран -->
+<div id="stage" hidden>
+  <div id="viewer"></div>
+  <!-- Нет 3D-модели — показываем фото машины (Wikimedia Commons) -->
+  <div class="photo-stage" id="photo-stage" hidden>
+    <figure class="photo-frame"><img id="photo-main" alt=""><figcaption id="photo-credit"></figcaption></figure>
+    <button class="photo-nav prev" id="photo-prev" type="button" aria-label="Предыдущее фото"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+    <button class="photo-nav next" id="photo-next" type="button" aria-label="Следующее фото"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+    <div class="photo-thumbs" id="photo-thumbs"></div>
+  </div>
+  <svg id="callout-lines" class="callout-lines"></svg>
+  <div id="callouts" class="callouts"></div>
+  <div id="moose-overlay" hidden>
+    <div class="moose-test-head">
+      <b>Тест на лося</b>
+      <button id="mm3d-close" aria-label="Закрыть тест"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div id="mm-test-panel">
+      <label>Скорость <b id="mm3d-speed-val">60,0 км/ч</b><input type="range" id="mm3d-speed" min="30" max="90" step="0.1" value="60"></label>
+      <div class="mm-actions"><button class="primary-act" id="mm3d-swerve">Объехать лося</button><button id="mm3d-hit">Не успеть — удар</button></div>
+    </div>
+  </div>
+
+  <header class="stage-top">
+    <div class="tour-progress"><div id="tour-bar"></div></div>
+    <div class="stage-masthead">
+      <a class="brand" href="/" aria-label="AutoChoice — на главную">
+      <img src="{{ url_for('static', filename='media/autochoice-icon.svg') }}?v=3" alt="" aria-hidden="true">
+      AutoChoice
+    </a>
+      <button class="acc-btn" id="acc-btn-stage" type="button" aria-label="Аккаунт"><span class="avatar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span class="acc-name">Войти</span></button>
+    </div>
+    <div class="stage-title">
+      <div class="title-card">
+        <h2 id="car-title"></h2>
+        <p id="car-price"></p>
+      </div>
+      <span class="step" id="tour-step"></span>
+    </div>
+  </header>
+
+  <div class="scroll-hint" id="scroll-hint">Листайте, чтобы осмотреть машину<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div>
+
+  <div class="stage-tools">
+    <button class="moose-btn" id="btn-moose">Тест на лося</button>
+    <button class="random-car-btn" id="btn-photos" type="button" hidden>Фото машины</button>
+  </div>
+
+  <footer class="stage-bottom">
+    <button class="glass-btn" id="btn-more">Подробнее</button>
+    <button class="glass-btn" id="btn-dislike">Не то</button>
+    <button class="accent-btn" id="btn-like">Нравится</button>
+  </footer>
+</div>
+
+<!-- Тест на лося: запасная 2D-сцена, если 3D не загрузилось -->
+<div id="moose-modal" class="moose-modal" hidden role="dialog" aria-label="Тест на лося">
+  <div class="mm-inner">
+    <div class="mm-head">
+      <div><b>Тест на лося</b><span id="mm-car"></span></div>
+      <button id="mm-close" aria-label="Закрыть тест"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <p class="mm-sub">Лось резко выпрыгивает из кустов прямо перед машиной. Что будет?<br><small id="mm-credit">Лось: WildMesh 3D, CC BY 4.0 · машина: автор указан в карточке</small></p>
+    <div class="mm-stage"><canvas id="mm-canvas"></canvas></div>
+    <div class="mm-controls">
+      <label class="mm-speed">
+        <span>Скорость <b id="mm-speed-val">60,0 км/ч</b></span>
+        <input type="range" id="mm-speed" min="30" max="90" step="0.1" value="60">
+        <span class="mm-scale"><i>30</i><i>60</i><i>90</i></span>
+      </label>
+      <div class="mm-actions">
+        <button class="primary-act" id="mm-swerve">Объехать лося</button>
+        <button id="mm-hit">Не успеть — удар</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Итог заезда -->
+<dialog id="mm-report" aria-labelledby="mm-report-title">
+  <div class="mm-report-body"></div>
+  <form method="dialog"><button class="primary" autofocus>Вернуться к тесту</button></form>
+</dialog>
+
+<!-- Шторка «Подробнее»: вся текстовая информация -->
+<div id="sheet-backdrop" class="sheet-backdrop" hidden></div>
+<aside id="sheet" class="sheet" hidden aria-label="Подробнее о машине">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" id="sheet-close" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  <div id="result-body"></div>
+  <p class="goal-note" id="sheet-goal" hidden></p>
+  <p class="label">Вот что я понял (× — убрать условие):</p>
+  <div class="chips" id="profile-chips"></div>
+  <div class="block" id="remark-box">
+    <h3>Что не так?</h3>
+    <textarea id="remark-text" rows="2" placeholder="Например: дороговато, хочу автомат"></textarea>
+    <button class="primary" id="remark-go">Подобрать другую</button>
+  </div>
+  <p class="credit" id="model-credit"></p>
+</aside>
+
+<!-- Вход и регистрация -->
+<dialog id="auth-dialog" class="modal" aria-labelledby="auth-title">
+  <form id="auth-form" novalidate>
+    <button type="button" class="modal-x" id="auth-cancel" aria-label="Закрыть"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="modal-logo"><img src="{{ url_for('static', filename='media/autochoice-icon.svg') }}?v=3" alt="" aria-hidden="true"></div>
+    <h2 id="auth-title">С возвращением</h2>
+    <p class="modal-sub" id="auth-sub">Войдите, чтобы сохранять машины и историю поиска</p>
+    <div class="seg" id="auth-seg" style="--n:2;--i:0"><i class="seg-thumb"></i>
+      <button type="button" class="seg-btn active" data-auth="login">Вход</button>
+      <button type="button" class="seg-btn" data-auth="register">Регистрация</button>
+    </div>
+    <label class="field"><span>Почта</span><input name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com" required></label>
+    <label class="field"><span>Пароль</span>
+      <div class="pw"><input name="password" type="password" autocomplete="current-password" maxlength="72" placeholder="Минимум 8 символов" required>
+        <button type="button" class="pw-eye" id="pw-eye" aria-label="Показать пароль"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+    </label>
+    <ul class="pw-rules reg-only" id="pw-rules" hidden><li data-rule="len">8+ символов</li><li data-rule="letter">Буквы</li><li data-rule="digit">Цифры</li></ul>
+    <label class="field reg-only" hidden><span>Имя <em>необязательно</em></span><input name="name" maxlength="40" autocomplete="given-name" placeholder="Как к вам обращаться"></label>
+    <p class="form-error" id="auth-error" role="alert" hidden></p>
+    <button class="primary btn-load" type="submit" id="auth-submit"><span class="btn-text">Войти</span><i class="spin"></i></button>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" hidden role="status"></div>
+<script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

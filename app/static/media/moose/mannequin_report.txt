@@ -1,0 +1,3 @@
+mannequin.glb — "Wooden Artist Mannequin" by Smoggybeard (Sketchfab), license: Sketchfab Standard.
+Split into 15 articulated segments by tools/prepare_mannequin.py; used for crash-test dummies in moose3d.js.
+Used at the project owner's request. Check the license before serving the site publicly.

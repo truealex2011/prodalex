@@ -1,0 +1,4 @@
+{"features":{"shape":"round","position":"front_left","symmetric_pair":true},"output":{"part_id":"wheel_front_left","confidence":0.99}}
+{"features":{"position":"front_center","height_ratio":0.2,"width_ratio":0.8},"output":{"part_id":"front_bumper","confidence":0.8}}
+{"features":{"position":"side_front_left","height_ratio":0.7},"output":{"part_id":"door_front_left","confidence":0.8}}
+{"features":{"connected_components":200,"material_count":1},"output":{"part_id":"unclassified","confidence":0.1}}

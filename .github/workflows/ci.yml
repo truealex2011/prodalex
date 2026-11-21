@@ -1,0 +1,27 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: autochoice, POSTGRES_PASSWORD: autochoice, POSTGRES_DB: autochoice_test }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U autochoice" --health-interval 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://autochoice:autochoice@localhost:5432/autochoice_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: pytest -q
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t autochoice:${{ github.sha }} .
+      # дальше: push в GHCR и `docker compose pull && up -d` на VPS по ssh (только main)
