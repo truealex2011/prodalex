@@ -188,6 +188,8 @@ def rule_goal(delta: ProfileDelta) -> str | None:
         return None
     if subj:
         return f"Ищу {subj}" + ("".join(f", {x}" for x in rest))
+    if len(rest) == 1:
+        return rest[0]
     return "Ищу машину: " + ", ".join(rest)
 
 
