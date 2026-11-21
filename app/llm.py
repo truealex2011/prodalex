@@ -17,6 +17,8 @@ import os
 import re
 import subprocess
 import threading
+
+from . import config  # noqa: F401  (подхватывает .env раньше, чем читаются PARSER_URL, AUTOCHOICE_* и остальные переменные)
 from functools import lru_cache
 from pathlib import Path
 

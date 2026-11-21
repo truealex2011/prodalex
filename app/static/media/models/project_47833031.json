@@ -1,0 +1,171 @@
+{
+  "title": "BMW 3 Series touring (E46) 2001",
+  "short_code": "oK8yM",
+  "uid": "478330312c3d46fd94999c3133ce0366",
+  "credit": "«BMW 3 Series touring (E46) 2001» — Luquita (Sketchfab), CC Attribution",
+  "source_url": "https://sketchfab.com/3d-models/bmw-3-series-touring-e46-2001-478330312c3d46fd94999c3133ce0366",
+  "license_url": "http://creativecommons.org/licenses/by/4.0/",
+  "license_class": "ok",
+  "selection": "manual",
+  "parts_found": [
+    "wheel_front_left",
+    "wheel_front_right",
+    "wheel_rear_left",
+    "wheel_rear_right",
+    "hood",
+    "door_skins_front_pair",
+    "door_skins_rear_pair",
+    "seats"
+  ],
+  "parts_missing": [
+    "door_front_left",
+    "door_front_right"
+  ],
+  "parts": [
+    {
+      "id": "wheel_front_left",
+      "node": 299,
+      "source_nodes": [
+        187,
+        189,
+        191,
+        193,
+        195,
+        197,
+        199,
+        203,
+        205
+      ],
+      "source_names": [
+        "desirefx.me_093",
+        "desirefx.me_094",
+        "desirefx.me_095",
+        "desirefx.me_096",
+        "desirefx.me_097",
+        "desirefx.me_098",
+        "desirefx.me_099",
+        "desirefx.me_101",
+        "desirefx.me_102"
+      ]
+    },
+    {
+      "id": "wheel_front_right",
+      "node": 300,
+      "source_nodes": [
+        251,
+        253,
+        255,
+        257,
+        259,
+        261,
+        263,
+        265,
+        267
+      ],
+      "source_names": [
+        "desirefx.me_125",
+        "desirefx.me_126",
+        "desirefx.me_127",
+        "desirefx.me_128",
+        "desirefx.me_129",
+        "desirefx.me_130",
+        "desirefx.me_131",
+        "desirefx.me_132",
+        "desirefx.me_133"
+      ]
+    },
+    {
+      "id": "wheel_rear_left",
+      "node": 301,
+      "source_nodes": [
+        209,
+        211,
+        213,
+        215,
+        217,
+        219,
+        221,
+        223,
+        227
+      ],
+      "source_names": [
+        "desirefx.me_104",
+        "desirefx.me_105",
+        "desirefx.me_106",
+        "desirefx.me_107",
+        "desirefx.me_108",
+        "desirefx.me_109",
+        "desirefx.me_110",
+        "desirefx.me_111",
+        "desirefx.me_113"
+      ]
+    },
+    {
+      "id": "wheel_rear_right",
+      "node": 302,
+      "source_nodes": [
+        231,
+        233,
+        235,
+        237,
+        239,
+        241,
+        243,
+        245,
+        247
+      ],
+      "source_names": [
+        "desirefx.me_115",
+        "desirefx.me_116",
+        "desirefx.me_117",
+        "desirefx.me_118",
+        "desirefx.me_119",
+        "desirefx.me_120",
+        "desirefx.me_121",
+        "desirefx.me_122",
+        "desirefx.me_123"
+      ]
+    },
+    {
+      "id": "hood",
+      "node": 303,
+      "source_nodes": [
+        123
+      ],
+      "source_names": [
+        "desirefx.me_061"
+      ]
+    },
+    {
+      "id": "door_skins_front_pair",
+      "node": 304,
+      "source_nodes": [
+        159
+      ],
+      "source_names": [
+        "desirefx.me_079"
+      ]
+    },
+    {
+      "id": "door_skins_rear_pair",
+      "node": 305,
+      "source_nodes": [
+        161
+      ],
+      "source_names": [
+        "desirefx.me_080"
+      ]
+    },
+    {
+      "id": "seats",
+      "node": 306,
+      "source_nodes": [
+        103
+      ],
+      "source_names": [
+        "desirefx.me_051"
+      ]
+    }
+  ],
+  "notes": "Наружные панели дверей объединены попарно; боковые стёкла в другой сетке."
+}

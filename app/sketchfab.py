@@ -54,6 +54,15 @@ def _body_group(text: str):
     return next((k for k, words in BODIES.items() if any(f" {normal(w)} " in padded for w in words)), None)
 
 
+# Одна и та же машина в разных странах называется по-разному: на Sketchfab её ищут под мировым названием
+ALIASES = {
+    "hyundai solaris": ["Hyundai Accent"], "kia rio": ["Kia K2"], "hyundai elantra": ["Hyundai Avante"], "hyundai creta": ["Hyundai ix25"],
+    "renault logan": ["Dacia Logan"], "renault sandero": ["Dacia Sandero"], "renault duster": ["Dacia Duster"],
+    "mitsubishi asx": ["Mitsubishi Outlander Sport"], "nissan qashqai": ["Nissan Dualis"], "toyota land cruiser prado": ["Toyota Land Cruiser Prado 150"],
+    "skoda rapid": ["Skoda Rapid Spaceback"], "chevrolet cruze": ["Holden Cruze"], "toyota rav4": ["Toyota RAV4"],
+}
+
+
 def names_for(car: dict) -> list[str]:
     """Названия для поиска: полное («Kia Sportage») и сокращённое без хвоста («Tiggo 7 Pro Max» → «Tiggo 7»)."""
     brand = TRANSLIT.get(car["brand"].upper(), car["brand"])
@@ -62,6 +71,7 @@ def names_for(car: dict) -> list[str]:
     words = model.split()
     if len(words) > 1:
         out.append(f"{brand} {' '.join(words[:-1])}")
+    out += ALIASES.get(normal(out[0]), [])
     return list(dict.fromkeys(out))
 
 
@@ -79,7 +89,7 @@ def best_model(candidates: list[dict], name: str, year=None, body=None):
         years = [int(y) for y in re.findall(r"\b(?:19|20)\d{2}\b", suffix)]
         rng = re.search(r"\b((?:19|20)\d{2})\s*[-–—]\s*((?:19|20)\d{2})\b", m.get("name") or "")
         year_match = bool(year and (year in years or (rng and int(rng[1]) <= int(year) <= int(rng[2]))))
-        if year and years and not year_match:
+        if year and years and not year_match and min(abs(y - int(year)) for y in years) > 6:
             continue
         cand_body = _body_group(suffix)
         if target and cand_body and target != cand_body:

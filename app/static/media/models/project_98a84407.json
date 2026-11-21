@@ -1,0 +1,50 @@
+{
+  "title": "Kia Sportage",
+  "short_code": "pApsO",
+  "uid": "98a84407998a4bc6b4dee912b289f15b",
+  "credit": "«Kia Sportage» — karaman.arman (Sketchfab), CC Attribution",
+  "source_url": "https://sketchfab.com/3d-models/kia-sportage-98a84407998a4bc6b4dee912b289f15b",
+  "license_url": "http://creativecommons.org/licenses/by/4.0/",
+  "license_class": "ok",
+  "selection": "manual",
+  "parts_found": [
+    "wheel_tires_and_rims_set",
+    "brake_rotors_set"
+  ],
+  "parts_missing": [
+    "door_front_left",
+    "door_front_right",
+    "hood",
+    "wheel_front_left",
+    "wheel_front_right",
+    "wheel_rear_left",
+    "wheel_rear_right"
+  ],
+  "parts": [
+    {
+      "id": "wheel_tires_and_rims_set",
+      "node": 41,
+      "source_nodes": [
+        6,
+        22,
+        28
+      ],
+      "source_names": [
+        "2022+Kia+Sportage_M_2022_Kia_Sportage_Main_plastic_matte_primary.001_0",
+        "2022+Kia+Sportage_M_2022_Kia_Sportage_Main_metal_rim_primary.001_0",
+        "2022+Kia+Sportage_M_2022_Kia_Sportage_Main_tread.001_0"
+      ]
+    },
+    {
+      "id": "brake_rotors_set",
+      "node": 42,
+      "source_nodes": [
+        31
+      ],
+      "source_names": [
+        "2022+Kia+Sportage_M_2022_Kia_Sportage_Main_brakes_rotors.001_0"
+      ]
+    }
+  ],
+  "notes": "Шины и диски сгруппированы по материалам сразу для четырёх колёс; двери и капот отдельно не подтверждены."
+}

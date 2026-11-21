@@ -1608,3 +1608,8 @@ body:has(#screen-mode:not(.active))::after { background: rgba(8, 9, 12, .45) !im
 #zoom-hint { bottom: 18px; }
 @media (hover: none) { #zoom-hint { display: none; } }
 .photo-nav { padding: 0; line-height: 0; }
+
+/* «Точных совпадений нет — показываю ближайший вариант» */
+.car-note { max-width: 330px; margin: 8px 0 0; padding: 7px 10px; border-left: 3px solid #ffd23f; border-radius: 0 10px 10px 0; background: rgba(255, 210, 63, .12); color: #ffe38a; font-size: 12.5px; line-height: 1.4; }
+.block.warn { border-left: 3px solid #ffd23f; background: rgba(255, 210, 63, .1); }
+.block.warn h3 { color: #ffd23f; }

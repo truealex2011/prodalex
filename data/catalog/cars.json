@@ -1954,5 +1954,155 @@
    "wheel_rear_left": "Полный привод · ESP",
    "wheel_rear_right": "Полный привод · ESP"
   }
+ },
+ {
+  "id": 22,
+  "brand": "Nissan",
+  "model": "Cefiro A31",
+  "trim": "Imported model",
+  "year": null,
+  "body": "suv",
+  "seats": null,
+  "trunk_l": null,
+  "power_hp": null,
+  "consumption_l100": null,
+  "drive": null,
+  "transmission": null,
+  "fuel": null,
+  "price": null,
+  "colors": [
+   "gray"
+  ],
+  "tags": [],
+  "specs": {
+   "moose_real": null,
+   "crash_real": null
+  },
+  "listing_url": null,
+  "image_key": null,
+  "model_key": "models/project_539b2257.glb",
+  "parts_key": "models/project_539b2257.json",
+  "model_credit": "«Nissan Cefiro A31» — Asadawut.Kaewma (Sketchfab), CC Attribution",
+  "hotspots": {}
+ },
+ {
+  "id": 23,
+  "brand": "LADA",
+  "model": "2107",
+  "trim": "Imported model",
+  "year": null,
+  "body": "suv",
+  "seats": null,
+  "trunk_l": null,
+  "power_hp": null,
+  "consumption_l100": null,
+  "drive": null,
+  "transmission": null,
+  "fuel": null,
+  "price": null,
+  "colors": [
+   "gray"
+  ],
+  "tags": [],
+  "specs": {
+   "moose_real": null,
+   "crash_real": null
+  },
+  "listing_url": null,
+  "image_key": null,
+  "model_key": "models/project_31201f80.glb",
+  "parts_key": "models/project_31201f80.json",
+  "model_credit": "«LADA 2107» — tiunov.se (Sketchfab), CC Attribution",
+  "hotspots": {}
+ },
+ {
+  "id": 24,
+  "brand": "BMW",
+  "model": "3 Series touring E46 2001",
+  "trim": "Imported model",
+  "year": null,
+  "body": "suv",
+  "seats": null,
+  "trunk_l": null,
+  "power_hp": null,
+  "consumption_l100": null,
+  "drive": null,
+  "transmission": null,
+  "fuel": null,
+  "price": null,
+  "colors": [
+   "gray"
+  ],
+  "tags": [],
+  "specs": {
+   "moose_real": null,
+   "crash_real": null
+  },
+  "listing_url": null,
+  "image_key": null,
+  "model_key": "models/project_47833031.glb",
+  "parts_key": "models/project_47833031.json",
+  "model_credit": "«BMW 3 Series touring (E46) 2001» — Luquita (Sketchfab), CC Attribution",
+  "hotspots": {}
+ },
+ {
+  "id": 25,
+  "brand": "toyota",
+  "model": "crown 2025",
+  "trim": "Imported model",
+  "year": null,
+  "body": "suv",
+  "seats": null,
+  "trunk_l": null,
+  "power_hp": null,
+  "consumption_l100": null,
+  "drive": null,
+  "transmission": null,
+  "fuel": null,
+  "price": null,
+  "colors": [
+   "gray"
+  ],
+  "tags": [],
+  "specs": {
+   "moose_real": null,
+   "crash_real": null
+  },
+  "listing_url": null,
+  "image_key": null,
+  "model_key": "models/project_9f48fc0a.glb",
+  "parts_key": "models/project_9f48fc0a.json",
+  "model_credit": "«toyota crown 2025» — sultan (Sketchfab), CC Attribution",
+  "hotspots": {}
+ },
+ {
+  "id": 26,
+  "brand": "Kia",
+  "model": "Sportage",
+  "trim": "Imported model",
+  "year": null,
+  "body": "suv",
+  "seats": null,
+  "trunk_l": null,
+  "power_hp": null,
+  "consumption_l100": null,
+  "drive": null,
+  "transmission": null,
+  "fuel": null,
+  "price": null,
+  "colors": [
+   "gray"
+  ],
+  "tags": [],
+  "specs": {
+   "moose_real": null,
+   "crash_real": null
+  },
+  "listing_url": null,
+  "image_key": null,
+  "model_key": "models/project_98a84407.glb",
+  "parts_key": "models/project_98a84407.json",
+  "model_credit": "«Kia Sportage» — karaman.arman (Sketchfab), CC Attribution",
+  "hotspots": {}
  }
 ]

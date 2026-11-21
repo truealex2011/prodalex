@@ -161,7 +161,8 @@ def _payload(rows: list[dict], base: str) -> dict:
         root = "/media" if model["storage"] == "s3" else base
         return {"kind": "model", "model": {
             "url": f"{root}/{model['storage_key']}", "parts_url": f"{root}/{parts['storage_key']}" if parts else None, "credit": model["credit"], "title": model["title"],
-            "source_url": model["source_url"], "license_url": model["license_url"], "origin": model["origin"]}}
+            "source_url": model["source_url"], "license_url": model["license_url"], "origin": model["origin"],
+            "warning": SF_WARNING if model["origin"] == "sketchfab" else None}}
     photos = [{"url": r["storage_key"], "credit": r["credit"], "title": r["title"], "page": r["source_url"],
                "license_url": r["license_url"]} for r in rows if r["kind"] == "image" and r["storage_key"].startswith("http")]
     return {"kind": "photos", "photos": photos} if photos else {"kind": "none"}
@@ -200,14 +201,49 @@ def _index_path() -> Path:
     return _dirs()[1] / "model3d_index.json"
 
 
+SF_WARNING = "Модель автоматически скачана с Sketchfab и может содержать ошибки"
+
+
+def own_model(name: str, year, base: str) -> dict | None:
+    """3D из нашей библиотеки (модели каталога проекта): приоритетнее всего, что можно скачать. Нужны все слова названия (марка + модель)."""
+    try:
+        cars = json.loads(Path(current_app.config["CATALOG_PATH"]).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    want = set(sketchfab.normal(name).split())
+    if len(want) < 2:
+        return None
+    best = None
+    for c in cars:
+        if not c.get("model_key"):
+            continue
+        have = set(sketchfab.normal(f"{c.get('brand', '')} {c.get('model', '')} {c.get('trim') or ''}").split())
+        if want <= have:
+            gap = abs(int(c.get("year") or year or 0) - int(year or 0)) if year else 0
+            if best is None or gap < best[0]:
+                best = (gap, c)
+    if not best:
+        return None
+    c, s3 = best[1], get_storage().name == "s3"
+    url = (lambda k: f"/media/{k}") if s3 else (lambda k: f"{base}/{k}")
+    return {"kind": "model", "at": time.time(), "url": url(c["model_key"]), "parts_url": url(c["parts_key"]) if c.get("parts_key") else None,
+            "credit": c.get("model_credit") or "Модель проекта AutoChoice", "source": "ours", "warning": None, "similar": None, "measured": None}
+
+
 def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dict:
     """3D-модель по названию из объявления: поиск на Sketchfab, загрузка GLB, разбиение на детали. Результат кэшируется."""
+    ours = own_model(name, year, base)
+    if ours:                                                   # наша модель всегда первая: поиск на Sketchfab не нужен
+        return ours
     key = f"{sketchfab.normal(name)}|{year or ''}|q2"      # q2: с проверкой качества модели
     with _locks[hash(key)]:
         idx = json.loads(_index_path().read_text(encoding="utf-8")) if _index_path().exists() else {}
         hit = idx.get(key)
         out_dir, cache_dir = _dirs()
-        if hit and (hit["kind"] == "model" and (out_dir / hit["file"]).exists() or hit["kind"] == "none" and time.time() - hit["at"] < 7 * 86400):
+        if hit and (hit["kind"] == "model" and (out_dir / hit["file"]).exists() or hit["kind"] == "none" and time.time() - hit["at"] < 86400):
+            if hit["kind"] == "model":                   # записи кэша до появления предупреждения тоже подписываем
+                hit.setdefault("source", "sketchfab")
+                hit.setdefault("warning", SF_WARNING)
             return hit
         words = name.split()
         car = {"brand": words[0], "model": " ".join(words[1:]) or name, "title": name, "year": int(year) if str(year or "").isdigit() else None,
@@ -215,6 +251,7 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
         payload = {"kind": "none", "at": time.time()}
         allow = bool(current_app.config.get("MODEL_ALLOW_NC", True))
         similar, manifest = None, None
+        transient = False                         # сбой сети/лимит Sketchfab: «модели нет» запоминать нельзя
 
         def accept(m):
             """Скачанную модель разбиваем на детали и проверяем качество: низкополигональные и «мыльные» отбрасываем (будут фото)."""
@@ -232,7 +269,7 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
             model = sketchfab.find_and_download(car, out_dir, cache_dir, allow)
         except Exception as e:
             log.warning("3D для %s: %s", name, e)
-            model = None
+            model, transient = None, True
         if model and not accept(model):
             model = None
         elif not model and current_app.config.get("MODEL_ALLOW_SIMILAR"):   # точной нет: ближайшая той же марки (по умолчанию выключено — лучше фото)
@@ -243,7 +280,7 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
                                                         out_dir, cache_dir, allow)
                 except Exception as e:
                     log.warning("3D для %s: %s", alt, e)
-                    model = None
+                    model, transient = None, True
                 if model and accept(model):
                     similar = alt
                     break
@@ -259,7 +296,9 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
             payload = {"kind": "model", "at": time.time(), "file": model["file"], "url": f"{root}/{k}",
                        "parts_url": f"{root}/{k.replace('.glb', '.json')}" if manifest else None,
                        "credit": f"«{model['title']}» — {model['author']} (Sketchfab), {model['license']}",
-                       "measured": (manifest or {}).get("measured_real"), "similar": similar}
+                       "measured": (manifest or {}).get("measured_real"), "similar": similar, "source": "sketchfab", "warning": SF_WARNING}
+        if transient and payload["kind"] == "none":
+            return payload                        # не кэшируем: в следующий раз попробуем снова
         with _name_lock:
             idx = json.loads(_index_path().read_text(encoding="utf-8")) if _index_path().exists() else {}
             idx[key] = payload

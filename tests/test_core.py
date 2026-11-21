@@ -34,7 +34,7 @@ def test_expensive_is_not_cheap():
     assert "premium" in d.nice and "cheap" not in d.nice
     assert "cheap" in parse("нужна недорогая машина").nice and "premium" not in parse("нужна недорогая машина").nice
     res = recommend(CARS, {"hard": {}, "nice": {"premium": 1.0}})
-    assert res["car"]["price"] == max(c["price"] for c in CARS)
+    assert res["car"]["price"] == max(c["price"] for c in CARS if c["price"])   # импортированные модели без цены в сравнении не участвуют
 
 
 def test_hard_constraints_never_violated():
@@ -136,3 +136,19 @@ def test_similar_model_must_be_modern_and_not_low_poly():
     assert era_ok({"name": "Mercedes-Benz E-Class (W212)"}, 2022) and era_ok({"name": "Audi A7 2019"}, 2016)
     assert not era_ok({"name": "Toyota Corolla (KE80)"}, 2018) and not era_ok({"name": "toyota crown 90s"}, 2016)
     assert not good_quality({"name": "LADA 2107 Low Poly", "faceCount": 200_000}) and good_quality({"name": "BMW X5", "faceCount": 80_000})
+
+
+def test_damaged_listings_are_detected():
+    from app.engine import is_damaged
+    assert is_damaged({"title": "Продажа Hyundai Solaris", "description": "седан, б/у, 1.6 литра, не на ходу или битый"})
+    assert is_damaged({"title": "x", "description": "", "raw": "Особые отметки требуется ремонт или не на ходу Поколение"})
+    assert not is_damaged({"title": "x", "description": "в идеальном состоянии, не битый, без ДТП", "raw": "Поиск ДТП и расчетов ремонтов Проверка наличия залогов"})
+
+
+def test_relaxed_requests_for_missing_exact_match():
+    from app import engine
+    steps = engine._relaxed({"hard": {"brands": ["bmw"], "models": ["bmw/x9"], "budget_max": 3_000_000}, "nice": {}})
+    assert len(steps) == 2 and "models" not in steps[0][0]["hard"] and "brands" not in steps[1][0]["hard"]
+    assert "не найдено" in steps[0][1] and "BMW" in steps[0][1]
+    only_budget = engine._relaxed({"hard": {"budget_max": 500_000}, "nice": {}})
+    assert len(only_budget) == 1 and "budget_max" not in only_budget[0][0]["hard"] and "дороже" in only_budget[0][1]

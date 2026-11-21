@@ -1,0 +1,12 @@
+.git
+.github
+.claude
+.pytest_cache
+__pycache__
+*.pyc
+data/cache
+assets_private
+.env
+tests
+docs
+tools

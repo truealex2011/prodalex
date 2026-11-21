@@ -452,7 +452,7 @@ async function prepareCar(car, color) {
     const a = car.asset || {};
     const q = new URLSearchParams({ name: car.title, year: a.year || car.year || "", body: car.body || "", length: car.specs?.length_mm || "" });
     const m = await api("GET", `/model3d?${q}`).catch(() => ({ kind: "none" }));
-    if (m.kind === "model") car = { ...car, model_url: m.url, parts_url: m.parts_url, model_credit: (m.similar ? `похожая модель (${m.similar}) — точной 3D этой машины нет в открытом доступе; ` : "") + m.credit, specs: { ...car.specs, measured: m.similar ? null : m.measured } };
+    if (m.kind === "model") car = { ...car, model_url: m.url, parts_url: m.parts_url, model_credit: (m.similar ? `похожая модель (${m.similar}) — точной 3D этой машины нет в открытом доступе; ` : "") + m.credit, model_warning: m.warning, specs: { ...car.specs, measured: m.similar ? null : m.measured } };
     await viewer.prepare(car, color);
     const photos = (car.images || []).filter((u) => !/ttn|gen272/.test(u)).slice(0, 8);
     gallery.set((photos.length ? photos : [car.image_url].filter(Boolean)).map((u) => ({ url: u, credit: `Фото из объявления (${car.source || "Drom"})`, page: car.listing_url })));
@@ -463,7 +463,7 @@ async function prepareCar(car, color) {
     return car;
   }
   if (!car.model_url) media = await api("GET", `/cars/${car.id}/media`).catch(() => ({ kind: "none" }));
-  if (media.kind === "model" && !car.model_url) car = { ...car, model_url: media.model.url, parts_url: media.model.parts_url, model_credit: media.model.credit };
+  if (media.kind === "model" && !car.model_url) car = { ...car, model_url: media.model.url, parts_url: media.model.parts_url, model_credit: media.model.credit, model_warning: media.model.warning };
   await viewer.prepare(car, color);   // без модели — простая заглушка: она нужна тесту на лося
   gallery.set(media.kind === "photos" ? media.photos : null);
   return car;
@@ -519,8 +519,11 @@ function renderDetails(rec) {
   $("#car-title").textContent = c.title;
   $("#btn-moose").hidden = !c.model_url;             // тест на лося — только там, где есть 3D-модель машины
   $("#car-price").textContent = `${c.trim} · от ${money(c.price)}`;
+  $("#car-note").hidden = !rec.note;                   // «Точных совпадений нет — показываю ближайший вариант»
+  $("#car-note").textContent = rec.note || "";
   const block = (title, html) => html.trim() ? `<h3 class="specs-title">${title}</h3><div class="specs">${html}</div>` : "";
   $("#result-body").innerHTML = `
+    ${rec.note ? `<div class="block warn"><h3>Точных совпадений нет</h3><p>${esc(rec.note)}</p></div>` : ""}
     <h2 class="car-title">${esc(c.title)}</h2>
     <p class="car-meta">${esc(c.trim)} · ${esc(c.year)} · от ${money(c.price)}${rec.budget_note ? ` · ${esc(rec.budget_note)}` : ""}</p>
     ${block("Динамика", `
@@ -543,7 +546,7 @@ function renderDetails(rec) {
     ${rec.alternatives.length ? `<div class="block"><h3>Альтернативы</h3><ul>${rec.alternatives.map((a, i) => a.car ? `<li><button class="link alt-open" data-alt="${i}">${esc(a.title)}</button> <span class="alt">${esc(a.diff)}</span></li>` : `<li>${esc(a.title)} <span class="alt">${esc(a.diff)}</span></li>`).join("")}</ul></div>` : ""}
     ${c.listing_url ? `<a class="secondary" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${esc(c.listing_url)}" target="_blank" rel="noopener">Смотреть объявление</a>` : ""}`;
   $("#profile-chips").innerHTML = chipsHtml(rec.chips);
-  $("#model-credit").textContent = c.model_credit ? `3D: ${c.model_credit}` : gallery.items.length ? (c.market ? "Качественной 3D-модели этой машины нет — показаны фото из объявления" : "Готовой 3D-модели этой машины пока нет — показана общая сцена; фото: Wikimedia Commons, свободные лицензии") : "";
+  $("#model-credit").textContent = c.model_credit ? `3D: ${c.model_credit}${c.model_warning ? ` · ⚠ ${c.model_warning}` : ""}` : gallery.items.length ? (c.market ? "Качественной 3D-модели этой машины нет — показаны фото из объявления" : "Готовой 3D-модели этой машины пока нет — показана общая сцена; фото: Wikimedia Commons, свободные лицензии") : "";
 }
 
 function renderEmpty(rec) {
