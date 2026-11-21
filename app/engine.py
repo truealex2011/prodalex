@@ -161,6 +161,10 @@ def _post(path: str, payload: dict, timeout: int = 300) -> dict:
         return json.loads(r.read().decode("utf-8"))
 
 
+class SourcesBusy(Exception):
+    """Drom/Fresh временно отказывают (лимит запросов): это не «объявлений нет», а «попробуйте позже»."""
+
+
 def available() -> bool:
     try:
         with urllib.request.urlopen(PARSER_URL + "/health", timeout=3) as r:
@@ -184,7 +188,11 @@ def _listings_for(model: dict, profile: dict, mode: str) -> list[dict]:
     try:
         res = _post("/api/search", {"description": model["title"][:600], "mode": mode, "answers": answers, "asked": [], "phase": "initial"})
     except Exception:
+        model["_busy"] = True
         return []
+    src = res.get("sources") or []
+    if src and not any(s.get("ok") for s in src):      # все источники отказали (Drom ограничил запросы), а не «объявлений нет»
+        model["_busy"] = True
     return [dict(r, model=model) for r in res.get("results", [])]
 
 
@@ -318,6 +326,8 @@ def recommend_market(profile: dict, mode: str, exclude: set | None = None, descr
     if hard.get("transmission"):
         cars = [c for c in cars if c["transmission"] in (None, hard["transmission"])]
     if not cars:
+        if models and all(m.get("_busy") for m in models):
+            raise SourcesBusy("источники объявлений временно ограничили запросы")
         return None
     ranked = sorted(((score(c, profile, cars)[0], c) for c in cars), key=lambda x: (-x[0], -(x[1]["year"] or 0)))
     best_s, best = ranked[0]

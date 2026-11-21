@@ -131,9 +131,12 @@ def describe(sid):
     text = str(data.get("text", "")).strip()
     if not text:
         raise ApiError("empty_text", "Опишите хотя бы парой слов, какая машина нужна")
-    delta, engine = nlu.parse_ex(text)
+    clean = nlu.sanitize(text)             # слова-бессмыслицу выкидываем; если осмысленного ничего не осталось — просим переписать
+    if not clean or not nlu.has_meaning(clean, nlu.parse(clean)):
+        raise ApiError("not_understood", "Не понял запрос. Опишите машину словами, например: «семейный кроссовер до 3 млн» или «хочу Land Cruiser»", 422)
+    delta, engine = nlu.parse_ex(clean)
     _save(s, merge(s.profile, delta))
-    _log(s, "describe", user_text=text[:1000], parsed=delta.model_dump(mode="json"),
+    _log(s, "describe", user_text=clean[:1000], parsed=delta.model_dump(mode="json"),
          nlu_engine=engine, profile_version=s.profile_version)
     _funnel(s, "describe")
     db.session.commit()
@@ -250,6 +253,10 @@ def market(sid):
     exclude = {x for x in request.args.get("exclude", "").split(",") if x}
     try:
         res = engine.recommend_market(s.profile, s.mode, exclude, _description(s))
+    except engine.SourcesBusy:
+        return jsonify({"car": None, "alternatives": [], "uncertain": [], "empty": True, "counterfactuals": [], "source": "market",
+                        "why_empty": ["Сайты объявлений временно ограничили запросы. Подождите 2–3 минуты и нажмите «Показать машину» снова — условия сохранены."],
+                        "profile_version": s.profile_version, "chips": chips(s.profile)})
     except Exception:
         current_app.logger.exception("подбор по объявлениям")
         res = None

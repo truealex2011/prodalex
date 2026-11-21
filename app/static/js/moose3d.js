@@ -502,6 +502,7 @@ export class MooseTest {
       box, halfLen: size.z / 2, halfW: size.x / 2, height: size.y,
       seat: { driver: localBox("seat_driver"), passenger: localBox("seat_passenger"), rear: localBox("seat_rear") },
       wheelBox: localBox("steering_wheel"), dash: localBox("dashboard"), windshield: localBox("windshield"), roof: localBox("roof"),
+      wheelBoxes: ["wheel_front_left", "wheel_front_right", "wheel_rear_left", "wheel_rear_right"].map((id) => ({ id, box: localBox(id) })).filter((w) => w.box),
       wheels: ["wheel_front_left", "wheel_front_right", "wheel_rear_left", "wheel_rear_right"].map((id) => {
         const b = localBox(id); return b ? new THREE.Vector3((b.min.x + b.max.x) / 2, b.min.y + 0.02, (b.min.z + b.max.z) / 2) : null;
       }).filter(Boolean),
@@ -509,6 +510,8 @@ export class MooseTest {
     this.dummies?.forEach((d) => d.root.removeFromParent());
     this.dummies = null;
     this.steerMeshes = null;
+    this.resetWheels();
+    this.wheelSets = null;
   }
 
   // ---------- реквизит ----------
@@ -573,9 +576,11 @@ export class MooseTest {
       const zCut = b.min.z + (b.max.z - b.min.z) * 0.4;
       for (const m of this.v.partMeshes.get(id) || []) {
         M.multiplyMatrices(inv, m.matrixWorld);
-        const pos = m.geometry.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-          p.fromBufferAttribute(pos, i).applyMatrix4(M);
+        const pos = m.geometry.attributes.position, index = m.geometry.index;
+        // деталь — это только её треугольники (индексы): буфер вершин общий со всей моделью, и «все вершины» дали бы крышу
+        const n = index ? index.count : pos.count;
+        for (let k = 0; k < n; k++) {
+          p.fromBufferAttribute(pos, index ? index.getX(k) : k).applyMatrix4(M);
           if (p.z < zCut && p.x > b.min.x && p.x < b.max.x && p.y > top) top = p.y;
         }
       }
@@ -600,7 +605,7 @@ export class MooseTest {
     if (seats.passenger) this.dummies.push(new Dummy("passenger", this.seg, hipOf("seat_passenger", seats.passenger), { front: true }));
     if (seats.rear) { const b = seats.rear; this.dummies.push(new Dummy("rear", this.seg, hipOf("seat_rear", new THREE.Box3(new THREE.Vector3(b.min.x, b.min.y, b.min.z), new THREE.Vector3((b.min.x + b.max.x) / 2 - 0.05, b.max.y, b.max.z))), { front: false })); }
     // рост манекена — под потолок этой машины (модели машин нормированы по длине, салоны разные)
-    const roofIn = (g.roof ? g.roof.min.y : g.box.max.y - 0.1) - 0.05;
+    const roofIn = Math.max(g.roof ? g.roof.min.y : 0, g.box.max.y * 0.74) - 0.05;   // рамка крыши включает стойки: потолок не ниже ~74% высоты
     for (const d of this.dummies) {
       car.add(d.root);
       d.applyPose(0);
@@ -628,6 +633,45 @@ export class MooseTest {
       const Ax = this.wheel.Ax.clone().transformDirection(toParent);
       return { m, m0: m.matrix.clone(), auto: m.matrixAutoUpdate, C, Ax };
     });
+  }
+
+  /** Колёса: каждое вращается вокруг своей оси (матрицы мешей, исходные сохраняются). Угол = путь / радиус. */
+  prepareWheels() {
+    if (this.wheelSets) return;
+    const v = this.v;
+    this.wheelSets = [];
+    for (const { id, box } of this.geo.wheelBoxes || []) {
+      const C = box.getCenter(new THREE.Vector3());
+      const radius = Math.max(0.2, (box.max.y - box.min.y) / 2);
+      const meshes = (v.partMeshes.get(id) || []).map((m) => {
+        const toParent = new THREE.Matrix4().copy(m.parent.matrixWorld).invert().multiply(v.car.matrixWorld);
+        return { m, m0: m.matrix.clone(), auto: m.matrixAutoUpdate, C: C.clone().applyMatrix4(toParent), Ax: new THREE.Vector3(1, 0, 0).transformDirection(toParent) };
+      });
+      if (meshes.length) this.wheelSets.push({ radius, meshes });
+    }
+    this.wheelAngle = 0;
+  }
+
+  spinWheels(distance) {
+    this.prepareWheels();
+    if (!this.wheelSets?.length) return;
+    this.wheelAngle = (this.wheelAngle || 0) + distance;      // накапливаем путь; угол у каждого колеса свой (по радиусу)
+    const T = new THREE.Matrix4(), R = new THREE.Matrix4(), Ti = new THREE.Matrix4();
+    for (const w of this.wheelSets) {
+      const angle = -this.wheelAngle / w.radius;               // вперёд (−Z) — верх колеса идёт вперёд
+      for (const s of w.meshes) {
+        T.makeTranslation(s.C.x, s.C.y, s.C.z); Ti.makeTranslation(-s.C.x, -s.C.y, -s.C.z);
+        R.makeRotationAxis(s.Ax, angle);
+        s.m.matrixAutoUpdate = false;
+        s.m.matrix.copy(T).multiply(R).multiply(Ti).multiply(s.m0);
+        s.m.matrixWorldNeedsUpdate = true;
+      }
+    }
+  }
+
+  resetWheels() {
+    for (const w of this.wheelSets || []) for (const s of w.meshes) { s.m.matrix.copy(s.m0); s.m.matrixAutoUpdate = s.auto; s.m.matrixWorldNeedsUpdate = true; }
+    this.wheelAngle = 0;
   }
 
   setSteering(angle) {
@@ -732,6 +776,7 @@ export class MooseTest {
     if (this.bush) this.bush.visible = false;
     this.dummies?.forEach((d) => d.reset());
     this.setSteering(0);
+    this.resetWheels();
     this.run = null;
   }
 
@@ -822,6 +867,7 @@ export class MooseTest {
     v.car.position.set(R.roll < 0 ? -this.geo.halfW * (1 - Math.cos(R.roll)) : 0, this.geo.halfW * Math.sin(Math.abs(R.roll)) * R.lift, 0);
     v.carRoot.updateMatrixWorld(true);
     this.setSteering(R.steer);
+    this.spinWheels(R.s - sPrev);
 
     // лось в мире
     if (this.elk.visible && M.state !== "fly") {
@@ -1087,9 +1133,14 @@ export class MooseTest {
   breakWindshield(R, sev) {
     const v = this.v;
     this.windshieldMats = [];
+    const seenGlass = new Set();
     for (const m of v.partMeshes.get("windshield") || []) {
-      const mats = materialsOf(m).map((mat) => { this.windshieldMats.push({ mat, color: mat.color.getHex(), opacity: mat.opacity }); return mat; });
-      for (const mat of mats) { mat.color.setHex(0xdfe7ee); mat.opacity = 0.55 + 0.25 * sev; }
+      for (const mat of materialsOf(m)) {
+        if (seenGlass.has(mat)) continue;
+        seenGlass.add(mat);
+        this.windshieldMats.push({ mat, color: mat.color.getHex(), opacity: mat.opacity, transparent: mat.transparent });
+        mat.color.setHex(0xdfe7ee); mat.opacity = 0.55 + 0.25 * sev;
+      }
     }
     // осколки — мелкие треугольники с гравитацией и отскоком
     const wb = v.boxOfPart("windshield");
@@ -1113,7 +1164,7 @@ export class MooseTest {
   }
 
   restoreWindshield() {
-    for (const w of this.windshieldMats || []) { w.mat.color.setHex(w.color); w.mat.opacity = w.opacity; }
+    for (const w of this.windshieldMats || []) { w.mat.color.setHex(w.color); w.mat.opacity = w.opacity; if (w.transparent !== undefined) w.mat.transparent = w.transparent; w.mat.needsUpdate = true; }
     this.windshieldMats = [];
   }
 
@@ -1199,9 +1250,12 @@ export class MooseTest {
     if (on === !!this.xrayMats) return;
     if (on) {
       this.xrayMats = [];
+      const seen = new Set();                           // материал общий для многих мешей: исходное состояние запоминаем один раз
       for (const [id, part] of v.parts) {
         if (part.group !== "exterior" || /wheel|light|glass|window|windshield/.test(id)) continue;
         for (const m of v.partMeshes.get(id) || []) for (const mat of materialsOf(m)) {
+          if (seen.has(mat)) continue;
+          seen.add(mat);
           this.xrayMats.push({ mat, t: mat.transparent, o: mat.opacity, d: mat.depthWrite });
           Object.assign(mat, { transparent: true, opacity: 0.22, depthWrite: false });
           mat.needsUpdate = true;

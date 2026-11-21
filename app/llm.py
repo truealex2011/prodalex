@@ -107,8 +107,8 @@ HARD_EVIDENCE = {
     "transmission": r"автомат|механик|акпп|мкпп|вариатор|коробк|переключ|сцеплен",
     "drive": r"привод|4x4|4х4|полн|бездорож|снег|грязь|дач|внедорож|грунт|клиренс",
     "fuel": r"бензин|дизел|гибрид|электро|заправ",
-    "seats": r"\d|мест|человек|пят|шест|сем|дет|ребен|пассажир|двое|трое|четв|вся |друз|команд|бабуш|дед",
-    "budget": r"\d|бюджет|дешев|недорог|млн|тыс|рубл|₽",
+    "seats": r"\d\s*(мест|человек|чел\b|пассаж)|мест|человек|пят|шест|сем|дет|ребен|пассажир|двое|трое|четв|вся |друз|команд|бабуш|дед",
+    "budget": r"\d[\d\s.,]*\s*(млн|тыс|руб|₽|к\b|миллион|лям)|бюджет|дешев|недорог|до\s*\d|за\s*\d|млн|тыс|рубл|₽",
 }
 # кузов принимается только если клиент назвал именно его: «большая семья» кузова не определяет
 BODY_EVIDENCE = {
@@ -140,9 +140,22 @@ def _as_int(v) -> int:
         return 0
 
 
+def _stems(s: str) -> set:
+    return {w[:5] for w in re.findall(r"[а-яa-z]{4,}", s.lower().replace("ё", "е"))}
+
+
+def _goal_ok(goal: str, text: str) -> bool:
+    """Пересказ годится, только если опирается на слова клиента и не повторяет пример из подсказки
+    («попа» -> «Ищет вместительный надёжный внедорожник для поездок на рыбалку…»)."""
+    g, t = _stems(goal), _stems(text)
+    leaked = (_stems(EXAMPLE_OUT.split('"budget_rub"')[0]) - t - {"ищет"}) & g
+    return bool(g & t) and not leaked
+
+
 def clean(raw: dict, text: str) -> dict:
     """Приводит ответ модели к безопасному виду: разрешённые значения, разумные числа и подтверждение текстом описания."""
     t = text.lower().replace("ё", "е")
+    t = re.sub(r"(?<![а-яa-z0-9])(?:[a-z]{1,3}[\s-]?\d{1,3}|[а-я]\d{1,3})(?![а-яa-z0-9])", " ", t)     # «х5», «x5», «m3» — модели, а не числа
     hard: dict = {}
     budget = _as_int(raw.get("budget_rub"))
     if 100_000 <= budget <= 100_000_000 and re.search(r"\d", text) and _seen(HARD_EVIDENCE["budget"], t):
@@ -164,6 +177,8 @@ def clean(raw: dict, text: str) -> dict:
     if "low_power" in nice:
         nice.pop("powerful", None)
     goal = re.sub(r"\s+", " ", str(raw.get("goal") or "")).strip()[:260]
+    if goal and not _goal_ok(goal, text):
+        goal = ""
     return {"hard": hard, "nice": nice, "color": None, "goal": goal or None}   # цвет определяют правила (nlu.parse)
 
 

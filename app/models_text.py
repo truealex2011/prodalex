@@ -77,3 +77,79 @@ def title_matches(title: str, path: str) -> bool:
     norm = lambda s: re.sub(r"[^a-z0-9]+", "", s.lower().translate(LOOKALIKE))      # noqa: E731
     model = path.partition("/")[2]
     return bool(model) and norm(model) in norm(title)
+
+
+# ───────────── «на слух»: «лэнд крузер», «камри», «кашкай» ↔ Land Cruiser, Camry, Qashqai ─────────────
+CYR = dict(zip("абвгдеёжзийклмнопрстуфхцчшщъыьэюя",
+               ["a", "b", "v", "g", "d", "e", "e", "s", "z", "i", "i", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h", "k", "c", "s", "s", "", "i", "", "e", "iu", "ia"]))
+
+
+def phon(s: str) -> str:
+    """Звучание слова: русское и латинское написание одного названия дают близкие строки."""
+    s = "".join(CYR.get(ch, ch) for ch in s.lower().replace("ё", "е"))
+    s = re.sub(r"[^a-z0-9]", "", s)
+    for a, b in (("sch", "s"), ("sh", "s"), ("ch", "c"), ("zh", "s"), ("kh", "h"), ("ph", "f"), ("ck", "k"), ("qu", "kv"), ("x", "ks"),
+                 ("w", "v"), ("q", "k"), ("y", "i"), ("z", "s"), ("j", "s")):
+        s = s.replace(a, b)
+    s = re.sub(r"c(?=[eiy])", "s", s).replace("c", "k")
+    return re.sub(r"(.)\1+", r"\1", s)
+
+
+def _lev(a: str, b: str, cap: int) -> int:
+    if abs(len(a) - len(b)) > cap:
+        return cap + 1
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        if min(cur) > cap:
+            return cap + 1
+        prev = cur
+    return prev[-1]
+
+
+def phonetic_models(text: str, paths: list[str], brand_slugs: list[str] | None = None) -> list[str]:
+    """Модели из снимка рынка, которые названы в тексте по-русски «как слышится». Без названной марки берём только однозначные."""
+    words = re.findall(r"[а-яёa-z]+", text.lower())
+    if not words:
+        return []
+    cands = []                                                   # (ключ, путь, число букв)
+    for path in paths:
+        brand, _, model = path.partition("/")
+        if brand_slugs and brand not in brand_slugs:
+            continue
+        if re.search(r"\d", model):
+            continue
+        key = phon(model.replace("-", " ").replace("_", " "))
+        if len(key) >= 4:
+            cands.append((key, path))
+    found = []
+    for n in (3, 2, 1):                                          # «ленд крузер прадо» важнее «ленд крузер»
+        for i in range(len(words) - n + 1):
+            win = words[i:i + n]
+            joined = "".join(win)
+            if len(joined) < 4:
+                continue
+            w = phon(joined)
+            tol = len(w) // 5                                    # короткие слова — только точное совпадение звучания
+            best = None
+            for key, path in cands:
+                if key[0] != w[0]:
+                    continue
+                d = _lev(w, key, tol)
+                if d <= tol and (best is None or d < best[0]):
+                    best = (d, path, key)
+            if best:
+                found.append((n, i, i + n, best[1], best[2], best[0]))
+    found.sort(key=lambda x: (-x[0], x[5]))
+    out, spans = [], []
+    for n, a, b, path, key, d in found:
+        if path in out or any(a < e and b > s for s, e in spans):
+            continue
+        same = [p for k, p in cands if k == key]                 # одно и то же название у разных марок — неоднозначно
+        if not brand_slugs and len({p.partition("/")[0] for p in same}) > 1:
+            continue
+        out.append(path)
+        spans.append((a, b))
+    return out[:3]

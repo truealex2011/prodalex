@@ -147,6 +147,7 @@
     <button class="photo-nav prev" id="photo-prev" type="button" aria-label="Предыдущее фото"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
     <button class="photo-nav next" id="photo-next" type="button" aria-label="Следующее фото"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
     <div class="photo-thumbs" id="photo-thumbs"></div>
+    <button class="photo-fs" id="photo-fs" type="button" aria-label="Увеличить фото" title="Увеличить (F)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M11 8v6M8 11h6"/></svg></button>
   </div>
   <svg id="callout-lines" class="callout-lines"></svg>
   <div id="callouts" class="callouts"></div>
@@ -263,6 +264,13 @@
 </dialog>
 
 <div id="toast" class="toast" hidden role="status"></div>
+<div id="zoom" role="dialog" aria-label="Просмотр фото" hidden>
+  <img id="zoom-img" alt="" draggable="false">
+  <button class="zoom-btn" id="zoom-close" type="button" aria-label="Закрыть"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <button class="zoom-btn" id="zoom-prev" type="button" aria-label="Предыдущее фото"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+  <button class="zoom-btn" id="zoom-next" type="button" aria-label="Следующее фото"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+  <div id="zoom-count"></div><div id="zoom-hint">Колесо — приближение · клик — 2,5× · перетаскивание — сдвиг</div>
+</div>
 <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

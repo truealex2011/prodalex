@@ -23,6 +23,9 @@ class Config:
     # Автопоиск 3D-моделей на Sketchfab: модели NonCommercial допустимы, пока проект некоммерческий.
     # Для коммерческого запуска поставьте SKETCHFAB_ALLOW_NC=0. SKETCHFAB_TOKEN включает официальное скачивание.
     MODEL_ALLOW_NC = os.getenv("SKETCHFAB_ALLOW_NC", "1") == "1"
+    MODEL_ALLOW_SIMILAR = os.getenv("MODEL_ALLOW_SIMILAR", "1") == "1"   # «похожая» 3D (та же марка и тип кузова), если точной нет; 0 — только точная или фото
+    MODEL_MIN_TRIANGLES = int(os.getenv("MODEL_MIN_TRIANGLES", "60000"))   # меньше — низкополигональная, показываем фото
+    MODEL_MIN_TEXTURE_PX = int(os.getenv("MODEL_MIN_TEXTURE_PX", "512"))   # текстуры меньше — низкое разрешение, показываем фото
     MODEL_INDEX_PREWARM = os.getenv("MODEL_INDEX_PREWARM", "1") == "1"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}

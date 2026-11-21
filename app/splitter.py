@@ -108,6 +108,42 @@ NAME_HINTS = [
 NAME_HINTS = [(k, re.compile(rx)) for k, rx in NAME_HINTS]
 
 
+# Максимальный размер детали (по наибольшему измерению) в диаметрах колеса: название материала или зона не должны превратить
+# огромный кусок кузова в «руль» или «шину». Детали не из списка (капот, крыша, бампера) размером не ограничены.
+MAX_EXTENT = [
+    (r"^steering_wheel$", 1.15), (r"^seat_driver$|^seat_passenger$", 1.9), (r"^seat_rear$", 2.6), (r"^pedals$", 1.3),
+    (r"^gear_shifter$", 1.0), (r"^handbrake$", 1.2), (r"^multimedia_screen$", 1.4), (r"^instrument_cluster$", 1.4),
+    (r"^(tire|rim|brake)_", 1.4), (r"^handle_", 0.9), (r"^badge_", 0.7), (r"^plate_", 1.1), (r"^wipers$", 2.3), (r"^exhaust$", 1.5),
+    (r"^fog_light_", 1.3), (r"^mirror_", 1.5), (r"^(headlight|taillight)_", 2.8), (r"^(door_front|door_rear)_", 3.4),
+    (r"^fender_", 3.4), (r"^grille$", 2.6),
+]
+MAX_EXTENT = [(re.compile(rx), k) for rx, k in MAX_EXTENT]
+# части, которых в машине одна: куски, оторвавшиеся от главного, не считаем (иначе «руль» растягивается на пол-салона)
+SINGULAR = {"steering_wheel": 0.9, "seat_driver": 1.8, "seat_passenger": 1.8, "pedals": 1.3, "gear_shifter": 0.9, "handbrake": 1.1,
+            "multimedia_screen": 1.3, "instrument_cluster": 1.1}
+
+
+def implausible(p, D):
+    ext = float((p["hi_c"] - p["lo_c"]).max()) / D
+    return any(rx.search(p["part"]) and ext > k for rx, k in MAX_EXTENT)
+
+
+def enforce_singular(pieces, D):
+    for part, gap in SINGULAR.items():
+        mine = [p for p in pieces if p["part"] == part and not implausible(p, D)]
+        keep = {id(p) for p in mine}
+        for p in pieces:
+            if p["part"] == part and id(p) not in keep:
+                p["part"] = None
+        if len(mine) < 2:
+            continue
+        anchor = max(mine, key=lambda p: (p.get("conf") or 0, p["n"]))
+        ac = (anchor["lo_c"] + anchor["hi_c"]) / 2
+        for p in mine:
+            if np.linalg.norm((p["lo_c"] + p["hi_c"]) / 2 - ac) > gap * D:
+                p["part"] = None
+
+
 def _stamp(pieces, conf_of):
     """Уверенность для деталей, назначенных последним проходом."""
     for p in pieces:
@@ -490,7 +526,8 @@ def refine_shell(pieces, prims, R, lo_c, hi_c, ctx):
     x0 = ctx["x0"]
     out = []
     for p in pieces:
-        shell = p["part"] is None and p["role"] in ("paint", None, "chrome") and p["n"] > 1500 and ((p["hi_c"] - p["lo_c"]) / np.array([W, H, L])).max() > 0.4
+        rel = (p["hi_c"] - p["lo_c"]) / np.array([W, H, L])
+        shell = p["part"] is None and p["role"] in ("paint", None, "chrome") and p["n"] > 1500 and (rel[2] > 0.55 or rel[0] > 0.8)
         if not shell:
             out.append(p)
             continue
@@ -599,6 +636,8 @@ def refine_interior(pieces, prims, R, lo_c, hi_c, ctx):
             elif part in ("seat_driver", "seat_passenger") and 0.15 * W < size[0] < 0.5 * W and 0.25 * H < size[1] < 0.65 * H \
                     and 0.12 * wb < size[2] < 0.35 * wb:
                 conf = 0.6                                   # отдельный предмет размером с кресло
+            elif part == "seat_rear" and 0.1 * W < size[0] < 0.7 * W and 0.2 * H < size[1] < 0.65 * H and 0.08 * wb < size[2] < 0.4 * wb:
+                conf = 0.6
             out.append(dict(p, part=part, conf=conf))
             continue
         for name in set(lab.tolist()):
@@ -687,8 +726,9 @@ def split_glb(src: bytes, length_m: float | None = None) -> tuple[bytes, dict]:
     pieces = refine_wheels(pieces, prims, R, wheel_info, D, ctx["x0"])
     pieces = refine_interior(pieces, prims, R, lo_c, hi_c, ctx)
     for p in pieces:                                     # не уверены — не подписываем: кусок остаётся частью модели
-        if p["part"] and (p.get("conf") or 0) < MIN_CONF:
+        if p["part"] and ((p.get("conf") or 0) < MIN_CONF or implausible(p, D)):
             p["part"] = None
+    enforce_singular(pieces, D)
     for p in pieces:                                     # боковые стёкла — по дверям (граница — стойка B)
         if p["part"] and p["part"].startswith("side_glass_"):
             sd = p["part"].rsplit("_", 1)[1]
@@ -788,3 +828,46 @@ def _export(j, binary, prims, pieces, R, lo_c, hi_c, wheel_info, D, length_m, to
                                   wheelbase=float(abs(fl["c"][2] - rl["c"][2])), track=float(abs(fl["c"][0] - fr["c"][0])),
                                   wheel_diameter=float(D), scale_to_m=scale))
     return glb, manifest
+
+
+# ───────────── качество исходной модели: низкополигональные и «мыльные» не показываем (лучше фото) ─────────────
+def quality_stats(src: bytes) -> dict:
+    """Число треугольников и размер самой большой текстуры (px) исходной модели."""
+    j, binary = read_glb(src)
+    tris = 0
+    for m in j.get("meshes", []):
+        for p in m["primitives"]:
+            if p.get("mode", 4) != 4:
+                continue
+            acc = p["indices"] if "indices" in p else p["attributes"]["POSITION"]
+            tris += j["accessors"][acc]["count"] // 3
+    sizes = []
+    for img in j.get("images", []):
+        bv = j["bufferViews"][img["bufferView"]] if "bufferView" in img else None
+        if bv is None:
+            continue
+        data = binary[bv.get("byteOffset", 0): bv.get("byteOffset", 0) + bv["byteLength"]]
+        if data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) >= 24:
+            sizes.append(max(struct.unpack(">II", data[16:24])))
+        elif data[:2] == b"\xff\xd8":
+            i = 2
+            while i < len(data) - 9:
+                if data[i] != 0xFF:
+                    i += 1
+                    continue
+                if data[i + 1] in (0xC0, 0xC1, 0xC2):
+                    sizes.append(max(struct.unpack(">HH", data[i + 5:i + 9])))
+                    break
+                i += 2 + struct.unpack(">H", data[i + 2:i + 4])[0]
+    return {"triangles": tris, "textures": len(sizes), "texture_px": max(sizes) if sizes else None}
+
+
+def low_quality_reason(q: dict | None, min_tris: int = 60_000, min_tex: int = 512) -> str | None:
+    """Почему модель не годится для показа (None — годится)."""
+    if not q:
+        return None
+    if q["triangles"] < min_tris:
+        return f"мало полигонов ({q['triangles']:,} < {min_tris:,})".replace(",", " ")
+    if q["texture_px"] and q["texture_px"] < min_tex:
+        return f"текстуры низкого разрешения ({q['texture_px']} px < {min_tex})"
+    return None

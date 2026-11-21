@@ -62,7 +62,7 @@ def test_fallback_to_rules_when_model_fails(monkeypatch):
         raise TimeoutError("слишком долго")
     monkeypatch.setattr(llm, "_run", boom)
     delta, engine = nlu.parse_ex("для семьи, красная")
-    assert engine == "rules" and delta.color == "red" and delta.goal is None
+    assert engine == "rules" and delta.color == "red" and delta.goal.startswith("Ищу машину")      # пересказ — по правилам, без нейросети
 
 
 def test_no_model_installed_means_rules(monkeypatch):

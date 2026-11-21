@@ -70,6 +70,7 @@ def _split_model(car: dict, out_dir: Path, model: dict) -> dict | None:
         log.warning("разбиение %s не удалось: %s", car["title"], e)
         return None
     path.write_bytes(glb)
+    manifest["quality"] = splitter.quality_stats(raw.read_bytes())
     manifest["credit"] = f"«{model['title']}» — {model['author']} (Sketchfab), {model['license']}"
     manifest["source_file"] = model["file"]
     path.with_suffix(".json").write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
@@ -88,6 +89,18 @@ def _split_model(car: dict, out_dir: Path, model: dict) -> dict | None:
     return manifest
 
 
+def _too_poor(manifest: dict | None, glb_path: Path) -> str | None:
+    """Причина отказа от 3D-модели по качеству (число полигонов, разрешение текстур); None — модель годится."""
+    cfg = current_app.config
+    q = (manifest or {}).get("quality")
+    if q is None:
+        try:
+            q = splitter.quality_stats(glb_path.read_bytes())
+        except Exception:
+            return None
+    return splitter.low_quality_reason(q, int(cfg.get("MODEL_MIN_TRIANGLES", 60_000)), int(cfg.get("MODEL_MIN_TEXTURE_PX", 512)))
+
+
 def _lookup(car: dict) -> None:
     out_dir, cache_dir = _dirs()
     allow_nc = bool(current_app.config.get("MODEL_ALLOW_NC", True))
@@ -97,11 +110,17 @@ def _lookup(car: dict) -> None:
     except Exception as e:      # сеть, лимиты, битый файл — не ломаем показ машины
         error = str(e)[:200]
         log.warning("поиск 3D для %s: %s", car["title"], error)
+    manifest = None
+    if model:
+        manifest = _split_model(car, out_dir, model)
+        why = _too_poor(manifest, out_dir / model["file"])
+        if why:                                  # низкополигональная или «мыльная» — показываем фото
+            log.info("3D для %s отклонена: %s", car["title"], why)
+            error, model, manifest = f"3D отклонена: {why}", None, None
     if model:
         key = f"models/sf2/{model['file']}"
         put = {}
         store = get_storage()
-        manifest = _split_model(car, out_dir, model)
         if store.name == "s3":   # файл модели (и разметка деталей) уходит в S3, локальная копия остаётся кэшем
             put = store.put_file(key, out_dir / model["file"]) | {"storage": "s3", "bucket": store.bucket, "content_type": content_type(key)}
             if manifest:
@@ -183,7 +202,7 @@ def _index_path() -> Path:
 
 def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dict:
     """3D-модель по названию из объявления: поиск на Sketchfab, загрузка GLB, разбиение на детали. Результат кэшируется."""
-    key = f"{sketchfab.normal(name)}|{year or ''}"
+    key = f"{sketchfab.normal(name)}|{year or ''}|q2"      # q2: с проверкой качества модели
     with _locks[hash(key)]:
         idx = json.loads(_index_path().read_text(encoding="utf-8")) if _index_path().exists() else {}
         hit = idx.get(key)
@@ -195,13 +214,28 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
                "body": body, "specs": {"length_mm": length_mm}}
         payload = {"kind": "none", "at": time.time()}
         allow = bool(current_app.config.get("MODEL_ALLOW_NC", True))
-        similar = None
+        similar, manifest = None, None
+
+        def accept(m):
+            """Скачанную модель разбиваем на детали и проверяем качество: низкополигональные и «мыльные» отбрасываем (будут фото)."""
+            nonlocal manifest
+            mf = _split_model(car, out_dir, m)
+            why = _too_poor(mf, out_dir / m["file"])
+            if why:
+                log.info("3D %s для %s отклонена: %s", m.get("title"), name, why)
+                payload["reason"] = why
+                return False
+            manifest = mf
+            return True
+
         try:
             model = sketchfab.find_and_download(car, out_dir, cache_dir, allow)
         except Exception as e:
             log.warning("3D для %s: %s", name, e)
             model = None
-        if not model:                    # точной модели нет в открытом доступе: ближайшая той же марки и класса
+        if model and not accept(model):
+            model = None
+        elif not model and current_app.config.get("MODEL_ALLOW_SIMILAR"):   # точной нет: ближайшая той же марки (по умолчанию выключено — лучше фото)
             for alt in _similar_names(name, body):
                 words = alt.split()
                 try:
@@ -210,11 +244,11 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
                 except Exception as e:
                     log.warning("3D для %s: %s", alt, e)
                     model = None
-                if model:
+                if model and accept(model):
                     similar = alt
                     break
+                model = None
         if model:
-            manifest = _split_model(car, out_dir, model)
             store, k = get_storage(), f"models/sf2/{model['file']}"
             root = base
             if store.name == "s3":
@@ -235,18 +269,24 @@ def resolve_name(name: str, year, body: str | None, length_mm, base: str) -> dic
 
 
 def _similar_names(name: str, body: str | None) -> list[str]:
-    """Запасные названия для 3D: другие модели той же марки с рынка (по популярности), затем родственные бренды."""
+    """Запасные названия для 3D, когда точной модели нет: другие модели ТОЙ ЖЕ марки и ТОГО ЖЕ типа кузова (по популярности),
+    а для марок вне снимка рынка — их известные линейки. Седан не заменяем внедорожником и наоборот."""
+    import re as _re
     from . import engine
     toks = engine._tokens(name)
     brand = name.split()[0].lower().replace("-benz", "")
-    same = [m for m in engine.market_models() if m["brand"].startswith(brand) and not engine._tokens(m["title"]) >= toks]
-    same.sort(key=lambda m: -m["count"])
-    kin = {"mercedes": ["Mercedes-Benz Maybach", "Mercedes-Benz E-Class", "Mercedes-Benz AMG GT"], "bmw": ["BMW 7 Series", "BMW M5"],
-           "audi": ["Audi A8", "Audi RS7"], "lexus": ["Lexus LS"], "porsche": ["Porsche Panamera", "Porsche 911"],
-           "land": ["Range Rover"], "toyota": ["Toyota Camry"], "lada": ["Lada Vesta"],
-           "rolls-royce": ["Rolls-Royce Phantom", "Rolls-Royce Ghost", "Rolls-Royce Cullinan", "Rolls-Royce Dawn", "Rolls-Royce Wraith"],
+    want_body = engine.BODY_CATS.get(body or "")
+    same = []
+    for m in engine.market_models():
+        if not m["brand"].startswith(brand) or engine._tokens(m["title"]) >= toks:
+            continue
+        if want_body and not (m["desc"] and _re.search(want_body, m["desc"])):      # тип кузова неизвестен или другой — не берём
+            continue
+        same.append(m)
+    same.sort(key=lambda m: (-len(engine._tokens(m["title"]) & toks), -m["count"]))      # сначала родственные по названию, затем популярные
+    kin = {"rolls-royce": ["Rolls-Royce Phantom", "Rolls-Royce Ghost", "Rolls-Royce Cullinan", "Rolls-Royce Dawn", "Rolls-Royce Wraith"],
            "bentley": ["Bentley Continental GT", "Bentley Bentayga", "Bentley Flying Spur"],
            "lamborghini": ["Lamborghini Urus", "Lamborghini Huracan", "Lamborghini Aventador"],
            "ferrari": ["Ferrari 488", "Ferrari F8", "Ferrari Roma", "Ferrari 812"], "mclaren": ["McLaren 720S", "McLaren 570S"]}
-    names = kin.get(brand, []) + [m["title"] for m in same[:6]]
+    names = kin.get(brand, []) + [m["title"] for m in same[:8]]
     return list(dict.fromkeys(n for n in names if n.lower() != name.lower()))[:8]
